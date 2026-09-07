@@ -66,6 +66,10 @@ The judge budget includes recorded spending from earlier invocations of the same
 
 The 40 calibration cases are agent-authored drafts. A human must actually validate them before a passing calibration can be claimed. Do not run the human review command under an invented reviewer identity. When a reviewer is present:
 
+For a browser-based review, run `pnpm review:build` and open `runs/calibration/review.html`. The generated file contains the React app, styles, and all 40 cases; it needs no server or network. Enter your name, inspect each proposed verdict, approve it or edit its fields, and flag unresolved questions. Download the responses JSON and return it to the maintainer. Pending and flagged cases do not count as validated. Edits return a previously approved case to pending until explicitly approved again. The export includes the dataset fingerprint and per-case timestamps so it can be checked against the original draft before applying decisions.
+
+Progress saves in browser storage where supported. The JSON download is the portable backup; browser storage may not transfer between the standalone file and a localhost preview. The existing terminal workflow remains available:
+
 ```sh
 pnpm bench review-calibration --reviewer '<human name>'
 pnpm bench review --run pilot-20 --set budget4096 --reviewer '<human name>'

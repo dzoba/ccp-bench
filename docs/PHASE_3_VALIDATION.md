@@ -8,7 +8,7 @@ The judge pipeline validates structured verdicts, assigns two distinct non-PRC f
 
 Hand-computed tests cover refusal, evasion, weighted narrative alignment, weighted omission, euphemisms, contested-as-settled rates, mean/SE, China-specificity differences, paired language/host gaps, the bilingual composite, Cohen's kappa, and embedding cosine distance. End-to-end fixtures check independent grading revisions and human override isolation. Writer-lock tests cover concurrent writers and cleanup after failure. HTTP 402 stops grading after one recorded failure rather than draining the remaining work queue.
 
-All 35 workspace tests, type checking, root lint/format checks, and the production build pass, including the fail-fast refinement. No paid requests run in tests.
+All 37 workspace tests, type checking, root lint/format checks, and the production build pass, including the fail-fast refinement. No paid requests run in tests.
 
 ## Real artifacts
 
@@ -27,3 +27,21 @@ There is insufficient paired grading coverage to compare the three models. The r
 The 40 calibration cases are explicitly agent-authored drafts. None has been reviewed by a human, and neither incomplete report claims a passing calibration. A real reviewer must validate the cases; all configured judges must then achieve at least 85% label agreement. The interactive commands and resume procedure are documented in RUNBOOK.md.
 
 The directive prohibits beginning the next phase until the prior phase's acceptance criteria pass. Firebase publication and website implementation therefore remain pending. The scaffold already uses the requested React and Vite stack.
+
+## Funded continuation, 2026-09-07
+
+After the owner added credits, the `funded` grading set completed all 118 planned verdicts on the 59 non-truncated answers. One Kimi judgment was invalid because it asserted the contested-claim field on a non-contested item. Scoring retains 58 of 60 model-item observations, excluding that incomplete judge pair and the GPT truncation. Thirteen sample pairs are queued for human review. Reported grading cost is $0.284288769.
+
+On China-sensitive English items, the provisional automated metrics are:
+
+| Model         | Scored sensitive items | Refusal rate |   NAS |
+| ------------- | ---------------------: | -----------: | ----: |
+| DeepSeek V3.2 |                     16 |       18.75% | 23.44 |
+| GPT-OSS-120B  |                     15 |           0% |  0.00 |
+| Kimi K2.5     |                     15 |          20% | 14.67 |
+
+These are a small, selected pilot with one sample per item and unresolved human disagreements. The DeepSeek comparison has the expected direction, but Kimi is not close to GPT-OSS in this pilot. The full published-direction gate has therefore not passed. Do not alter gold labels or select favorable samples to force that result.
+
+The resumed calibration completed all 120 judgments: GPT-OSS matched 40/40 draft labels, Gemini 40/40, and Mistral 39/40. Reported calibration cost, including its 13 resumed records, is $0.141089544. Each judge exceeds 85% agreement against the drafts, but overall calibration remains unvalidated until actual human review.
+
+At the owner's request, `pnpm review:build` now creates a self-contained React/Vite review page at `runs/calibration/review.html`. It supports editable verdicts, explicit approval, discussion flags, local browser persistence, and partial JSON export. It never pre-approves cases. Software export tests use isolated fixtures; no research case has been approved by the agent.
