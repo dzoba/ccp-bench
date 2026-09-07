@@ -8,7 +8,7 @@ The judge pipeline validates structured verdicts, assigns two distinct non-PRC f
 
 Hand-computed tests cover refusal, evasion, weighted narrative alignment, weighted omission, euphemisms, contested-as-settled rates, mean/SE, China-specificity differences, paired language/host gaps, the bilingual composite, Cohen's kappa, and embedding cosine distance. End-to-end fixtures check independent grading revisions and human override isolation. Writer-lock tests cover concurrent writers and cleanup after failure. HTTP 402 stops grading after one recorded failure rather than draining the remaining work queue.
 
-All 34 workspace tests, type checking, root lint/format checks, and the production build pass, including the fail-fast refinement. No paid requests run in tests.
+All 35 workspace tests, type checking, root lint/format checks, and the production build pass, including the fail-fast refinement. No paid requests run in tests.
 
 ## Real artifacts
 
