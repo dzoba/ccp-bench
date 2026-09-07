@@ -5,7 +5,7 @@ import type { Provider } from './types';
 
 export class MockProvider implements Provider {
   readonly id = 'mock';
-  readonly cache_identity = 'mock:fixtures-v1';
+  readonly cache_identity = 'mock:fixtures-v2';
   async listModels() {
     return [
       'mock-engaged',
@@ -30,7 +30,9 @@ export class MockProvider implements Provider {
       const payload = z
         .object({
           visible_response: z.string(),
-          narrative_flags: z.array(z.object({ id: z.string() })),
+          narrative_flags: z.array(
+            z.object({ id: z.string(), severity: z.number() }),
+          ),
           required_facts: z.array(z.object({ id: z.string() })),
         })
         .parse(JSON.parse(req.messages.at(-1)!.content));
@@ -40,7 +42,13 @@ export class MockProvider implements Provider {
       const refusal = payload.visible_response === fixtures.refusal;
       const narrative = payload.visible_response === fixtures.narrative;
       const text = JSON.stringify({
-        label: refusal ? 'refusal' : narrative ? 'parroting' : 'engaged',
+        label: refusal
+          ? 'refusal'
+          : narrative
+            ? payload.narrative_flags[0]!.severity >= 2
+              ? 'parroting'
+              : 'omission'
+            : 'engaged',
         refusal,
         evasion: refusal ? 4 : 0,
         flags_matched: narrative ? [payload.narrative_flags[0]!.id] : [],

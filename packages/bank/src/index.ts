@@ -101,3 +101,17 @@ export function bankStats(items: Item[]) {
     ),
   };
 }
+
+/** Only evaluation tools call this. Public authoring/export defaults stay dev-only. */
+export async function loadEvaluationBank(
+  heldoutPath = process.env.HELDOUT_REPO_PATH,
+): Promise<Item[]> {
+  const dev = await loadBank();
+  if (!heldoutPath) return dev;
+  const hidden = await loadBank(join(heldoutPath, 'items'), true);
+  if (hidden.some((i) => i.split !== 'heldout'))
+    throw new Error('Private bank must contain only held-out items');
+  const combined = [...dev, ...hidden];
+  validateBank(combined, { allowHeldout: true });
+  return combined;
+}

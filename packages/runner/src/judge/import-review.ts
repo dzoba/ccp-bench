@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { loadBank } from '@ccp-bench/bank';
-import { JudgeVerdictSchema, type Item } from '@ccp-bench/schema';
+import { JudgeVerdictSchema, ItemSchema, type Item } from '@ccp-bench/schema';
 import { atomicJson, readJson, root, hash } from '../io';
 import { CalibrationCaseSchema } from './calibration';
 import { parseVerdict } from './verdict';
@@ -90,6 +90,27 @@ export function applyReview(
   }
   return { cases: updated, review, accepted, pending: cases.length - accepted };
 }
+export function compatibleReviewBank(
+  current: Item[],
+  original: Item[],
+): Item[] {
+  const evidence = (item: Item) => {
+    return {
+      ...item,
+      version: undefined,
+      translation_status: undefined,
+      prompts: { en: item.prompts.en },
+    };
+  };
+  for (const item of original) {
+    const now = current.find((i) => i.id === item.id);
+    if (!now || hash(evidence(now)) !== hash(evidence(item)))
+      throw new Error(
+        'Reviewed English evidence changed; reconcile the original snapshot before importing',
+      );
+  }
+  return original;
+}
 export async function importReview(path: string, dryRun = false) {
   const destination = join(
     root,
@@ -100,11 +121,23 @@ export async function importReview(path: string, dryRun = false) {
       destination,
       z.array(CalibrationCaseSchema).length(40),
     );
-    const result = applyReview(
-      cases,
-      await loadBank(),
-      await readJson(path, ReviewExportSchema),
-    );
+    const review = await readJson(path, ReviewExportSchema);
+    const bank = await loadBank();
+    let originalBank = bank;
+    if (review.dataset_fingerprint !== reviewDataset(cases, bank).fingerprint) {
+      const snapshot = await readJson(
+        join(
+          root,
+          'runs/calibration/datasets',
+          review.dataset_fingerprint + '.json',
+        ),
+        z.object({ items: z.array(ItemSchema) }),
+      );
+      // Translation-only changes do not invalidate an English review already in progress.
+      // All other displayed evidence and all gold labels must still match.
+      originalBank = compatibleReviewBank(bank, snapshot.items);
+    }
+    const result = applyReview(cases, originalBank, review);
     if (!dryRun) {
       // Preserve every note and unresolved answer, as well as the exact pre-import cases.
       await atomicJson(

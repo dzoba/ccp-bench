@@ -1,3 +1,5 @@
+import { z } from 'zod';
+import { PublicIndexSchema } from '@ccp-bench/schema';
 import { Resvg } from '@resvg/resvg-js';
 import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -13,12 +15,14 @@ for (const [name, size] of [
   const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100"><rect width="100" height="100" rx="16" fill="#216d62"/><path d="M22 75V48h13v27zm22 0V25h13v50zm22 0V38h13v37z" fill="#fff"/></svg>`;
   await writeFile(directory + name, new Resvg(icon).render().asPng());
 }
-const pointer = JSON.parse(
-  await readFile(directory + 'data/current.json', 'utf8'),
-) as { version: string };
-const index = JSON.parse(
-  await readFile(directory + `data/${pointer.version}/index.json`, 'utf8'),
-) as { models: { key: string }[]; items: { id: string }[] };
+const pointer = z
+  .object({ version: z.string().regex(/^[\w.-]+$/) })
+  .parse(JSON.parse(await readFile(directory + 'data/current.json', 'utf8')));
+const index = PublicIndexSchema.parse(
+  JSON.parse(
+    await readFile(directory + `data/${pointer.version}/index.json`, 'utf8'),
+  ),
+);
 const routes = [
   '/',
   '/items',

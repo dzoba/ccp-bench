@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { ItemSchema } from '@ccp-bench/schema';
+import { suggestSplit } from './split';
 import { bankStats, loadBank, validateBank } from './index';
 import {
   VersionLedgerSchema,
@@ -13,6 +14,45 @@ import {
 const ledgerPath = fileURLToPath(new URL('../versions.json', import.meta.url));
 
 const program = new Command().name('bank');
+program
+  .command('split-suggest')
+  .option('--ratio <ratio>', 'Target fraction', '0.3')
+  .option('--seed <seed>', 'Stable selection seed', 'ccp-bench-v0.1')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({ ratio: z.coerce.number().gt(0).lt(1), seed: z.string() })
+      .parse(raw);
+    console.log(
+      JSON.stringify(suggestSplit(await loadBank(), o.ratio, o.seed), null, 2),
+    );
+  });
+program
+  .command('translate')
+  .requiredOption('--lang <lang>')
+  .option('--only-missing')
+  .option('--model <key>', 'Non-PRC translator', 'claude-sonnet-5-openrouter')
+  .option('--max-cost <usd>', 'Budget cap', '2')
+  .option('--dry-run')
+  .option('--directory <path>', 'Private bank items directory')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({
+        lang: z.enum(['zh-Hans', 'zh-Hant']),
+        onlyMissing: z.boolean().default(false),
+        model: z.string(),
+        maxCost: z.coerce.number().positive(),
+        dryRun: z.boolean().default(false),
+        directory: z.string().optional(),
+      })
+      .parse(raw);
+    const { translateBank } =
+      await import('../../runner/src/authoring/translate');
+    await translateBank(o);
+  });
+program.command('review-translations').action(async () => {
+  const { reviewTranslations } = await import('./review-translations');
+  await reviewTranslations();
+});
 program.command('validate').action(async () => {
   const items = await loadBank();
   validateBank(items, { requireAllCategories: true });

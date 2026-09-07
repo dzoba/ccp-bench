@@ -4,7 +4,11 @@ import { readJson, root } from '../src/io';
 import { join } from 'node:path';
 import { z } from 'zod';
 import { CalibrationCaseSchema } from '../src/judge/calibration';
-import { applyReview, reviewDataset } from '../src/judge/import-review';
+import {
+  applyReview,
+  reviewDataset,
+  compatibleReviewBank,
+} from '../src/judge/import-review';
 it('imports explicit decisions in memory, preserves unresolved cases, and rejects stale or altered approvals', async () => {
   const cases = await readJson(
     join(root, 'packages/runner/fixtures/judge-calibration/cases.json'),
@@ -48,4 +52,17 @@ it('imports explicit decisions in memory, preserves unresolved cases, and reject
       answers: [review.answers[0], ...review.answers.slice(0, -1)],
     }),
   ).toThrow('exactly once');
+});
+
+it('keeps English reviews valid across translation-only changes but rejects changed evidence', async () => {
+  const original = (await loadBank()).slice(0, 1);
+  const current = structuredClone(original);
+  current[0]!.version++;
+  current[0]!.prompts['zh-Hans'] = '测试问题';
+  current[0]!.translation_status['zh-Hans'] = 'machine';
+  expect(compatibleReviewBank(current, original)).toEqual(original);
+  current[0]!.required_facts[0]!.text += ' Changed claim.';
+  expect(() => compatibleReviewBank(current, original)).toThrow(
+    'evidence changed',
+  );
 });

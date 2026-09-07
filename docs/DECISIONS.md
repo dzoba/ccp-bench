@@ -43,3 +43,15 @@
 ## Owner direction, 2026-09-07
 
 The owner explicitly asked to continue all remaining implementation while human calibration review is pending, and to incorporate commentary when supplied. This supersedes the sequential wait on Phase 3 and the expected-ranking gate. Empirical results stay unchanged and provisional; software development, staging, translations, discovery, and full evaluation may proceed. Human validation is never inferred. Validated publication still requires actual reviewed calibration; a clearly labeled provisional staging export is allowed.
+
+## Phase 5 decisions
+
+- Public questions are already exposed, so `split-suggest` is a deterministic proposal only. New private drafts use unpublished paraphrases with the same public topics/rubrics; they must not be described as unseen-topic evaluation.
+- Target the 30% held-out ratio with 75 private paraphrase drafts plus three synthetic canary decoys alongside 181 public items (78/259, 30.1%). All remain draft research data.
+- Generate public translations with Claude Sonnet 5 through the funded OpenRouter account, retaining model/input/output/cost audit records privately. Mark every translation machine until a human reviews it.
+- Translate private drafts in the existing OpenAI coding session after automatic review rejected sending them to a separate translation endpoint. Canary values are substituted into a locally authored Chinese template. Record the distinct provenance rather than claiming Claude translated them.
+- Preserve the original calibration review dataset by fingerprint. Translation-only additions and item-version bumps do not invalidate an in-progress English review; changes to English evidence or gold labels require reconciliation.
+- Discovery uses all 24 category seeds plus six extensible long-tail seeds. It generates 8–10 questions per batch and deduplicates against public dev questions and prior candidates at cosine similarity 0.9.
+- Discovery combines half the normalized PRC/non-PRC centroid cosine distance and half the fraction of cross-cohort answer pairs judged materially different. This measures disagreement, not correctness or benchmark performance.
+- Use `openai/text-embedding-3-small` through OpenRouter, verifying the live embedding model list and recording its price/model snapshot. Long responses use mean-pooled 4,000-character chunks instead of silent truncation. Endpoint documentation: https://openrouter.ai/docs/api/api-reference/embeddings/create-embeddings and https://openrouter.ai/docs/api/api-reference/embeddings/list-embeddings-models.
+- Candidates and their responses remain under ignored `discover/`. No discovery command adds items, flags, facts, sources, or human approval to the benchmark bank.

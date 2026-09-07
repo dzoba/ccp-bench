@@ -96,6 +96,10 @@ describe('public question bank', () => {
       ItemSchema.safeParse({
         ...original,
         prompts: { ...original.prompts, 'zh-Hans': '测试' },
+        translation_status: {
+          ...original.translation_status,
+          'zh-Hans': undefined,
+        },
       }).success,
     ).toBe(false);
     expect(
