@@ -1,0 +1,16 @@
+# Model metadata verification in progress
+
+These primary-source checks prepare the full release. They do not retroactively change parameters recorded in the pilot manifests. Model catalog availability dates and endpoint defaults remain explicitly provisional until the complete roster and each hosting variant are verified.
+
+| Model family             | Verified recommendation or constraint                                                                                                              | Source                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| DeepSeek general chat    | General-conversation temperature 1.3; the API's default temperature is 1.0. A default is not the same as the recommended chat setting.             | [DeepSeek parameter settings](https://api-docs.deepseek.com/quick_start/parameter_settings/)   |
+| DeepSeek V4 thinking     | Temperature has no effect in thinking mode, so a requested temperature-zero run must not be described as deterministic sampling for that mode.     | [DeepSeek Responses compatibility](https://api-docs.deepseek.com/guides/responses_api/)        |
+| Qwen3 235B Instruct 2507 | Temperature 0.7, top-p 0.8; the model card additionally recommends top-k 20 and min-p 0.                                                           | [Official Qwen model card](https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507)          |
+| Qwen3 235B Thinking 2507 | Temperature 0.6 and top-p 0.95; the card recommends 32,768 output tokens for most queries, above the draft release config's current 8,192 ceiling. | [Official Qwen thinking model card](https://huggingface.co/Qwen/Qwen3-235B-A22B-Thinking-2507) |
+| Kimi K2.5                | Temperature 1.0 for thinking, 0.6 for instant, and top-p 0.95. Verify how each endpoint selects the mode.                                          | [Official Moonshot model card](https://huggingface.co/moonshotai/Kimi-K2.5)                    |
+| GLM-5                    | Official example enables thinking and uses temperature 1.0. This example alone does not establish every recommended benchmark setting.             | [Z.AI GLM-5 documentation](https://docs.z.ai/guides/llm/glm-5)                                 |
+
+Before finalizing release configs, complete checks for R1, Kimi Thinking, MiniMax, Ernie, GPT, Claude, Gemini, GPT-OSS, Llama, Mistral, and Grok; verify vendor release dates and the exact chosen snapshots. Apply confirmed settings to new registry revisions, then recompute cost estimates. Do not alter an in-flight run's model snapshot.
+
+For controlled OpenRouter hosting comparisons, explicitly select the intended upstream endpoint and disable fallback. Base provider slugs can match multiple endpoint variants; record the exact slug, quantization, and weight identity. A route through OpenRouter is still not equivalent to a direct vendor API. See [OpenRouter provider routing](https://openrouter.ai/docs/guides/routing/provider-selection).
