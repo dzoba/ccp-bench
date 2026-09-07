@@ -67,6 +67,8 @@ async function judgeRunUnlocked(
     providerFactory?: (model: Model) => Provider;
     log?: (line: string) => void;
     judgeSet?: string;
+    concurrency?: number;
+    signal?: AbortSignal;
   } = {},
 ): Promise<JudgeRecord[]> {
   const manifest = await readJson(
@@ -130,6 +132,8 @@ async function judgeRunUnlocked(
   const buckets = new Map<string, TokenBucket>();
   let spent = existing.reduce((sum, record) => sum + record.cost_usd, 0);
   const previousSpend = spent;
+  let reserved = 0;
+  const tasks: (() => Promise<void>)[] = [];
   for (const sample of responses) {
     if (
       sample.response.provider_error ||
@@ -180,144 +184,173 @@ async function judgeRunUnlocked(
           );
         continue;
       }
-      const provider = factory(model);
-      const bucket =
-        buckets.get(provider.cache_identity) ??
-        new TokenBucket(config.requests_per_minute);
-      buckets.set(provider.cache_identity, bucket);
-      let result: JudgeRecord | undefined;
-      let cost = 0;
-      let fatalError: string | undefined;
-      const price = prices[model.key]!;
-      const requestEstimate =
-        (Math.ceil(Buffer.byteLength(system + JSON.stringify(payload)) / 3) *
-          price.input_per_million +
-          judgeTokenLimit(model, config) * price.output_per_million) /
-        1e6;
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        if (spent + requestEstimate > config.max_cost_usd) {
-          if (cost > 0) {
-            await appendJsonl(
-              file,
-              JudgeRecordSchema.parse({
-                sample_id: sample.sample_id,
-                item_id: item.id,
-                model_key: target.key,
-                judge_key: model.key,
-                judge_family: model.family,
-                role,
-                prompt_hash: promptHash,
-                input_hash: inputHash,
-                created_at: new Date().toISOString(),
-                judge_error: 'Budget exhausted before retrying invalid verdict',
-                cost_usd: cost,
-                attempts: attempt - 1,
-              }),
+      tasks.push(async () => {
+        const provider = factory(model);
+        const bucket =
+          buckets.get(provider.cache_identity) ??
+          new TokenBucket(config.requests_per_minute);
+        buckets.set(provider.cache_identity, bucket);
+        let result: JudgeRecord | undefined;
+        let cost = 0;
+        let fatalError: string | undefined;
+        const price = prices[model.key]!;
+        const requestEstimate =
+          (Math.ceil(Buffer.byteLength(system + JSON.stringify(payload)) / 3) *
+            price.input_per_million +
+            judgeTokenLimit(model, config) * price.output_per_million) /
+          1e6;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          if (spent + reserved + requestEstimate > config.max_cost_usd) {
+            if (cost > 0) {
+              await appendJsonl(
+                file,
+                JudgeRecordSchema.parse({
+                  sample_id: sample.sample_id,
+                  item_id: item.id,
+                  model_key: target.key,
+                  judge_key: model.key,
+                  judge_family: model.family,
+                  role,
+                  prompt_hash: promptHash,
+                  input_hash: inputHash,
+                  created_at: new Date().toISOString(),
+                  judge_error:
+                    'Budget exhausted before retrying invalid verdict',
+                  cost_usd: cost,
+                  attempts: attempt - 1,
+                }),
+              );
+            }
+            await atomicJson(join(output, 'judge-interruption.json'), {
+              reason: 'Judge budget exhausted',
+              recorded_cost_usd: spent,
+              sample_id: sample.sample_id,
+              judge_key: model.key,
+            });
+            throw new Error(
+              'Judge budget exhausted; partial artifacts preserved',
             );
           }
-          await atomicJson(join(output, 'judge-interruption.json'), {
-            reason: 'Judge budget exhausted',
-            recorded_cost_usd: spent,
-            sample_id: sample.sample_id,
-            judge_key: model.key,
-          });
-          throw new Error(
-            'Judge budget exhausted; partial artifacts preserved',
-          );
-        }
-        await bucket.take();
-        let errorMessage: string | undefined;
-        try {
-          const generated = await provider.generate({
-            model: model.endpoint.model,
-            messages: [
-              { role: 'system', content: system },
-              { role: 'user', content: JSON.stringify(payload) },
-            ],
-            temperature: 0,
-            max_tokens: judgeTokenLimit(model, config),
-            reasoning: 'default',
-            response_format: {
-              type: 'json_schema',
-              json_schema: { name: 'judge_verdict', strict: true, schema },
-            },
-            metadata: {
+          reserved += requestEstimate;
+          await bucket.take();
+          let errorMessage: string | undefined;
+          try {
+            const generated = await provider.generate({
+              model: model.endpoint.model,
+              messages: [
+                { role: 'system', content: system },
+                { role: 'user', content: JSON.stringify(payload) },
+              ],
+              temperature: 0,
+              max_tokens: judgeTokenLimit(model, config),
+              reasoning: 'default',
+              response_format: {
+                type: 'json_schema',
+                json_schema: { name: 'judge_verdict', strict: true, schema },
+              },
+              metadata: {
+                item_id: item.id,
+                lang: sample.lang,
+                sample_idx: sample.sample_idx,
+              },
+            });
+            const billed = responseCost(generated, model, prices);
+            spent += billed;
+            cost += billed;
+            if (
+              isTruncated(generated) ||
+              generated.filter_layer === 'api' ||
+              generated.provider_error
+            )
+              throw new Error('Judge returned no complete gradable verdict');
+            const verdict = parseVerdict(
+              generated.text,
+              item,
+              sample.response.text,
+            );
+            result = JudgeRecordSchema.parse({
+              sample_id: sample.sample_id,
               item_id: item.id,
-              lang: sample.lang,
-              sample_idx: sample.sample_idx,
-            },
-          });
-          const billed = responseCost(generated, model, prices);
-          spent += billed;
-          cost += billed;
-          if (
-            isTruncated(generated) ||
-            generated.filter_layer === 'api' ||
-            generated.provider_error
-          )
-            throw new Error('Judge returned no complete gradable verdict');
-          const verdict = parseVerdict(
-            generated.text,
-            item,
-            sample.response.text,
+              model_key: target.key,
+              judge_key: model.key,
+              judge_family: model.family,
+              role,
+              prompt_hash: promptHash,
+              input_hash: inputHash,
+              created_at: new Date().toISOString(),
+              verdict,
+              cost_usd: cost,
+              attempts: attempt,
+            });
+            break;
+          } catch (error) {
+            errorMessage =
+              error instanceof Error
+                ? error.message.slice(0, 300)
+                : 'Judge error';
+            if (
+              error instanceof ProviderError &&
+              [401, 402, 403, 404].includes(error.status)
+            )
+              fatalError = errorMessage;
+          } finally {
+            reserved -= requestEstimate;
+          }
+          if (attempt === 2 || fatalError) {
+            result = JudgeRecordSchema.parse({
+              sample_id: sample.sample_id,
+              item_id: item.id,
+              model_key: target.key,
+              judge_key: model.key,
+              judge_family: model.family,
+              role,
+              prompt_hash: promptHash,
+              input_hash: inputHash,
+              created_at: new Date().toISOString(),
+              judge_error: errorMessage,
+              cost_usd: cost,
+              attempts: attempt,
+            });
+            break;
+          }
+        }
+        if (!result) throw new Error('Judge did not record an outcome');
+        await appendJsonl(file, result);
+        existing.push(result);
+        if (fatalError)
+          throw new Error(
+            `Judge stopped after ${fatalError}; partial artifacts preserved`,
           );
-          result = JudgeRecordSchema.parse({
-            sample_id: sample.sample_id,
-            item_id: item.id,
-            model_key: target.key,
-            judge_key: model.key,
-            judge_family: model.family,
-            role,
-            prompt_hash: promptHash,
-            input_hash: inputHash,
-            created_at: new Date().toISOString(),
-            verdict,
-            cost_usd: cost,
-            attempts: attempt,
-          });
-          break;
-        } catch (error) {
-          errorMessage =
-            error instanceof Error
-              ? error.message.slice(0, 300)
-              : 'Judge error';
-          if (
-            error instanceof ProviderError &&
-            [401, 402, 403, 404].includes(error.status)
-          )
-            fatalError = errorMessage;
-        }
-        if (attempt === 2 || fatalError) {
-          result = JudgeRecordSchema.parse({
-            sample_id: sample.sample_id,
-            item_id: item.id,
-            model_key: target.key,
-            judge_key: model.key,
-            judge_family: model.family,
-            role,
-            prompt_hash: promptHash,
-            input_hash: inputHash,
-            created_at: new Date().toISOString(),
-            judge_error: errorMessage,
-            cost_usd: cost,
-            attempts: attempt,
-          });
-          break;
-        }
-      }
-      if (!result) throw new Error('Judge did not record an outcome');
-      await appendJsonl(file, result);
-      existing.push(result);
-      if (fatalError)
-        throw new Error(
-          `Judge stopped after ${fatalError}; partial artifacts preserved`,
-        );
-      if (existing.length % 25 === 0)
-        log(
-          `Judged ${existing.length} verdicts, new reported spend $${(spent - previousSpend).toFixed(4)}`,
-        );
+        if (existing.length % 25 === 0)
+          log(
+            `Judged ${existing.length} verdicts, new reported spend $${(spent - previousSpend).toFixed(4)}`,
+          );
+      });
     }
   }
+  let next = 0;
+  let failed = false;
+  let failure: unknown;
+  const concurrency = z
+    .number()
+    .int()
+    .min(1)
+    .max(16)
+    .parse(options.concurrency ?? 1);
+  async function worker() {
+    while (!failed && !options.signal?.aborted) {
+      const task = tasks[next++];
+      if (!task) return;
+      try {
+        await task();
+      } catch (error) {
+        failed = true;
+        failure ??= error;
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: concurrency }, worker));
+  if (failed) throw failure;
   const queue = responses.flatMap((sample) => {
     const item = manifest.items.find((i) => i.id === sample.item_id)!;
     const pair = existing.filter(
@@ -348,6 +381,8 @@ async function judgeRunUnlocked(
     config,
     judge_models: allModels,
     verdicts: existing.length,
+    interrupted: Boolean(options.signal?.aborted),
+    concurrency,
     errors: existing.filter((j) => j.judge_error).length,
     needs_review: queue.length,
     cost_usd: existing.reduce((n, j) => n + j.cost_usd, 0),

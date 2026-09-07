@@ -200,6 +200,7 @@ program
 program
   .command('judge')
   .requiredOption('--run <id>', 'Existing run ID')
+  .option('--concurrency <count>', 'Concurrent judge requests', '1')
   .option('--set <id>', 'Separate grading revision', 'default')
   .option('--judges <path>', 'Judge configuration', 'configs/judges.yaml')
   .action(async (raw: unknown) => {
@@ -208,6 +209,7 @@ program
         run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
         judges: z.string(),
         set: z.string(),
+        concurrency: z.coerce.number().int().min(1).max(16),
       })
       .parse(raw);
     const registry = await readYaml(
@@ -219,16 +221,32 @@ program
       PricesSchema,
     );
     const config = await readYaml(resolve(options.judges), JudgeConfigSchema);
-    const records = await judgeRun(
-      join(root, 'runs', options.run),
-      registry,
-      prices,
-      config,
-      { judgeSet: options.set },
-    );
-    console.log(
-      `Recorded ${records.length} verdicts, ${records.filter((r) => r.judge_error).length} errors`,
-    );
+    const controller = new AbortController();
+    const stop = () => {
+      console.log('Finishing in-flight judge requests before stopping.');
+      controller.abort();
+    };
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+    try {
+      const records = await judgeRun(
+        join(root, 'runs', options.run),
+        registry,
+        prices,
+        config,
+        {
+          judgeSet: options.set,
+          concurrency: options.concurrency,
+          signal: controller.signal,
+        },
+      );
+      console.log(
+        `Recorded ${records.length} verdicts, ${records.filter((r) => r.judge_error).length} errors`,
+      );
+    } finally {
+      process.off('SIGINT', stop);
+      process.off('SIGTERM', stop);
+    }
   });
 program
   .command('score')

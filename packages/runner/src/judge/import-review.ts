@@ -51,13 +51,32 @@ export function reviewDataset(
       .digest('hex'),
   };
 }
+export const ReviewSnapshotSchema = z.object({
+  fingerprint: z.string(),
+  cases: z.array(
+    CalibrationCaseSchema.pick({
+      id: true,
+      item_id: true,
+      response: true,
+      expected: true,
+    }),
+  ),
+  items: z.array(ItemSchema),
+});
 export function applyReview(
   cases: z.infer<typeof CalibrationCaseSchema>[],
   bank: Item[],
   raw: unknown,
+  snapshot = reviewDataset(cases, bank),
 ) {
   const review = ReviewExportSchema.parse(raw);
-  if (review.dataset_fingerprint !== reviewDataset(cases, bank).fingerprint)
+  const originalFingerprint = createHash('sha256')
+    .update(JSON.stringify({ cases: snapshot.cases, items: snapshot.items }))
+    .digest('hex');
+  if (
+    review.dataset_fingerprint !== originalFingerprint ||
+    snapshot.fingerprint !== originalFingerprint
+  )
     throw new Error(
       'Review fingerprint differs from the current cases and bank; reconcile the original snapshot before importing',
     );
@@ -66,20 +85,50 @@ export function applyReview(
     new Set(review.answers.map((a) => a.id)).size !== cases.length
   )
     throw new Error('Review must include each case exactly once');
+  compatibleReviewBank(bank, snapshot.items);
   const updated = structuredClone(cases);
   let accepted = 0;
   for (const answer of review.answers) {
     const entry = updated.find((c) => c.id === answer.id);
     if (!entry || entry.item_id !== answer.item_id)
       throw new Error('Review contains an unknown or mismatched case');
-    if (answer.status !== 'approved' && answer.status !== 'corrected') continue;
+    const original = snapshot.cases.find((c) => c.id === entry.id);
+    if (
+      !original ||
+      original.item_id !== entry.item_id ||
+      original.response !== entry.response
+    )
+      throw new Error(
+        'Reviewed case content changed; reconcile its original snapshot',
+      );
+    if (
+      entry.human_review &&
+      review.exported_at < entry.human_review.reviewed_at
+    )
+      throw new Error(
+        'Review export predates an already recorded human decision',
+      );
+    if (answer.status !== 'approved' && answer.status !== 'corrected') {
+      entry.human_review = null;
+      continue;
+    }
     if (!answer.reviewed_at || answer.reviewed_at > review.exported_at)
       throw new Error(
         'Accepted answers require a review timestamp no later than export',
       );
+    if (
+      entry.human_review &&
+      answer.reviewed_at < entry.human_review.reviewed_at
+    )
+      throw new Error(
+        'Review answer predates an already recorded human decision',
+      );
     const item = bank.find((i) => i.id === entry.item_id)!;
     const verdict = parseVerdict(answer.verdict, item, entry.response);
-    if (answer.status === 'approved' && hash(verdict) !== hash(entry.expected))
+    if (
+      answer.status === 'approved' &&
+      hash(verdict) !== hash(original.expected)
+    )
       throw new Error('Changed verdicts must be explicitly marked corrected');
     entry.expected = verdict;
     entry.human_review = {
@@ -123,21 +172,26 @@ export async function importReview(path: string, dryRun = false) {
     );
     const review = await readJson(path, ReviewExportSchema);
     const bank = await loadBank();
-    let originalBank = bank;
-    if (review.dataset_fingerprint !== reviewDataset(cases, bank).fingerprint) {
-      const snapshot = await readJson(
+    let snapshot = reviewDataset(cases, bank);
+    const originalFingerprint = createHash('sha256')
+      .update(JSON.stringify({ cases: snapshot.cases, items: snapshot.items }))
+      .digest('hex');
+    if (
+      review.dataset_fingerprint !== originalFingerprint ||
+      snapshot.fingerprint !== originalFingerprint
+    ) {
+      snapshot = await readJson(
         join(
           root,
           'runs/calibration/datasets',
           review.dataset_fingerprint + '.json',
         ),
-        z.object({ items: z.array(ItemSchema) }),
+        ReviewSnapshotSchema,
       );
       // Translation-only changes do not invalidate an English review already in progress.
-      // All other displayed evidence and all gold labels must still match.
-      originalBank = compatibleReviewBank(bank, snapshot.items);
+      // English evidence must match; later explicit corrections can supersede earlier imports.
     }
-    const result = applyReview(cases, originalBank, review);
+    const result = applyReview(cases, bank, review, snapshot);
     if (!dryRun) {
       // Preserve every note and unresolved answer, as well as the exact pre-import cases.
       await atomicJson(
