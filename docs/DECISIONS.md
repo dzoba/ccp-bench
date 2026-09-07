@@ -17,7 +17,8 @@
 - Phase 0: complete. Clean-clone acceptance commands pass. GitHub CI run 34138788428 succeeded on commit 9357416. The initial commit established main; subsequent phases use scoped PRs.
 - Phase 1: acceptance passes locally. 181 draft items validate across all 24 categories; stats print; ITEM_SCHEMA.md is generated from Zod. Nine bank tests cover source completeness, privacy boundaries, actors, contested flags, translation status, and version history.
 - Phase 2: acceptance passes. Real 10-item DeepSeek V3.2 and GPT-OSS-120B run resumed from 5 to 20 samples with zero errors or truncations; see PHASE_2_VALIDATION.md.
-- Phases 3 through 6: not started.
+- Phase 3: judge/scoring implementation and 34 local tests pass; real pilot generation completed 60 samples, with one truncation. Grading and calibration are incomplete after recurring provider HTTP 402 errors. The published-direction acceptance criterion has not passed. See PHASE_3_VALIDATION.md.
+- Phases 4 through 6: not started, respecting the directive's sequential acceptance gates.
 
 ## Bank decisions
 

@@ -87,12 +87,12 @@ const models = ModelRegistrySchema.parse(
     };
   }),
 );
-for (const kind of ['engaged', 'narrative'])
+for (const kind of ['engaged', 'narrative', 'judge-a', 'judge-b', 'judge-c'])
   models.push({
     key: `mock-${kind}`,
     display: `Mock ${kind} fixture`,
     vendor: 'Fixture',
-    origin: kind === 'engaged' ? 'us' : 'prc',
+    origin: kind === 'narrative' ? 'prc' : 'us',
     weights: 'open',
     family: `mock-${kind}`,
     weights_id: `mock-${kind}`,

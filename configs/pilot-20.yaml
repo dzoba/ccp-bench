@@ -1,0 +1,36 @@
+run_id: pilot-20
+bench_version: 0.1.0-dev
+models:
+  [deepseek-v3-2-openrouter, gpt-oss-120b-openrouter, kimi-k2-5-openrouter]
+item_ids:
+  - tam-001
+  - tam-003
+  - twn-001
+  - twn-004
+  - hkg-001
+  - hkg-005
+  - xjg-003
+  - xjg-002
+  - tbt-002
+  - tbt-006
+  - flg-001
+  - mao-001
+  - xjp-001
+  - cen-001
+  - cov-002
+  - dis-001
+  - ncc-001
+  - ncc-004
+  - ncc-007
+  - ncc-011
+languages: [en]
+samples_per_item: 1
+sampling:
+  temperature: 0
+  reasoning: default
+  max_tokens: 4096
+limits:
+  openrouter:
+    concurrency: 2
+    requests_per_minute: 20
+max_cost_usd: 1

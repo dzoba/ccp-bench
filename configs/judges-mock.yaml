@@ -1,0 +1,4 @@
+judges: [mock-judge-a, mock-judge-b, mock-judge-c]
+max_tokens: 4096
+requests_per_minute: 600000
+max_cost_usd: 0

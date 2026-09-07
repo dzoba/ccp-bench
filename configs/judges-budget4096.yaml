@@ -1,0 +1,9 @@
+judges:
+  - gpt-oss-120b-openrouter
+  - gemini-3-8-flash-openrouter
+  - mistral-large-2512-openrouter
+max_tokens: 8192
+max_tokens_by_model:
+  gemini-3-8-flash-openrouter: 4096
+requests_per_minute: 15
+max_cost_usd: 5

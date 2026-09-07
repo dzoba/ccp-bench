@@ -445,3 +445,42 @@
     model: mock-narrative
   release_date: 2026-09-07
   notes: Synthetic software fixture, never a benchmark result.
+- key: mock-judge-a
+  display: mock-judge-a
+  vendor: Fixture
+  origin: us
+  weights: open
+  family: mock-judge-a
+  weights_id: mock-judge-a
+  host: local
+  endpoint:
+    provider: mock
+    model: mock-judge-a
+  release_date: 2026-09-07
+  notes: Synthetic CI judge fixture, never a real calibration result.
+- key: mock-judge-b
+  display: mock-judge-b
+  vendor: Fixture
+  origin: us
+  weights: open
+  family: mock-judge-b
+  weights_id: mock-judge-b
+  host: local
+  endpoint:
+    provider: mock
+    model: mock-judge-b
+  release_date: 2026-09-07
+  notes: Synthetic CI judge fixture, never a real calibration result.
+- key: mock-judge-c
+  display: mock-judge-c
+  vendor: Fixture
+  origin: us
+  weights: open
+  family: mock-judge-c
+  weights_id: mock-judge-c
+  host: local
+  endpoint:
+    provider: mock
+    model: mock-judge-c
+  release_date: 2026-09-07
+  notes: Synthetic CI judge fixture, never a real calibration result.

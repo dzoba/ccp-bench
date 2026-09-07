@@ -1466,3 +1466,1931 @@ Generated from the shared Zod schemas. Runtime refinements additionally reject d
   }
 }
 ```
+
+## JudgeConfig
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "judges": {
+      "minItems": 3,
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sensitivity_judge": {
+      "type": "string"
+    },
+    "max_tokens": {
+      "default": 8192,
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "max_tokens_by_model": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "maximum": 9007199254740991
+      }
+    },
+    "requests_per_minute": {
+      "default": 20,
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "max_cost_usd": {
+      "default": 5,
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "judges",
+    "max_tokens",
+    "requests_per_minute",
+    "max_cost_usd"
+  ],
+  "additionalProperties": false
+}
+```
+
+## JudgeVerdict
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "label": {
+      "type": "string",
+      "enum": [
+        "engaged",
+        "refusal",
+        "parroting",
+        "omission",
+        "euphemism",
+        "deflection"
+      ]
+    },
+    "refusal": {
+      "type": "boolean"
+    },
+    "evasion": {
+      "anyOf": [
+        {
+          "type": "number",
+          "const": 0
+        },
+        {
+          "type": "number",
+          "const": 1
+        },
+        {
+          "type": "number",
+          "const": 2
+        },
+        {
+          "type": "number",
+          "const": 3
+        },
+        {
+          "type": "number",
+          "const": 4
+        }
+      ]
+    },
+    "flags_matched": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "facts_present": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "euphemisms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "factual_errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "asserts_contested_as_settled": {
+      "type": "boolean"
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 3000
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": [
+    "label",
+    "refusal",
+    "evasion",
+    "flags_matched",
+    "facts_present",
+    "euphemisms",
+    "factual_errors",
+    "asserts_contested_as_settled",
+    "rationale",
+    "confidence"
+  ],
+  "additionalProperties": false
+}
+```
+
+## JudgeRecord
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "sample_id": {
+      "type": "string"
+    },
+    "item_id": {
+      "type": "string"
+    },
+    "model_key": {
+      "type": "string"
+    },
+    "judge_key": {
+      "type": "string"
+    },
+    "judge_family": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "headline",
+        "sensitivity"
+      ]
+    },
+    "prompt_hash": {
+      "type": "string"
+    },
+    "input_hash": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "verdict": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "engaged",
+            "refusal",
+            "parroting",
+            "omission",
+            "euphemism",
+            "deflection"
+          ]
+        },
+        "refusal": {
+          "type": "boolean"
+        },
+        "evasion": {
+          "anyOf": [
+            {
+              "type": "number",
+              "const": 0
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            }
+          ]
+        },
+        "flags_matched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facts_present": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "euphemisms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "factual_errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "asserts_contested_as_settled": {
+          "type": "boolean"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "label",
+        "refusal",
+        "evasion",
+        "flags_matched",
+        "facts_present",
+        "euphemisms",
+        "factual_errors",
+        "asserts_contested_as_settled",
+        "rationale",
+        "confidence"
+      ],
+      "additionalProperties": false
+    },
+    "judge_error": {
+      "type": "string"
+    },
+    "cost_usd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "attempts": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "sample_id",
+    "item_id",
+    "model_key",
+    "judge_key",
+    "judge_family",
+    "role",
+    "prompt_hash",
+    "input_hash",
+    "created_at",
+    "cost_usd",
+    "attempts"
+  ],
+  "additionalProperties": false
+}
+```
+
+## HumanReview
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "sample_id": {
+      "type": "string"
+    },
+    "verdict": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": [
+            "engaged",
+            "refusal",
+            "parroting",
+            "omission",
+            "euphemism",
+            "deflection"
+          ]
+        },
+        "refusal": {
+          "type": "boolean"
+        },
+        "evasion": {
+          "anyOf": [
+            {
+              "type": "number",
+              "const": 0
+            },
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            },
+            {
+              "type": "number",
+              "const": 3
+            },
+            {
+              "type": "number",
+              "const": 4
+            }
+          ]
+        },
+        "flags_matched": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "facts_present": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "euphemisms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "factual_errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "asserts_contested_as_settled": {
+          "type": "boolean"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "label",
+        "refusal",
+        "evasion",
+        "flags_matched",
+        "facts_present",
+        "euphemisms",
+        "factual_errors",
+        "asserts_contested_as_settled",
+        "rationale",
+        "confidence"
+      ],
+      "additionalProperties": false
+    },
+    "reviewed_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 5000
+    }
+  },
+  "required": [
+    "sample_id",
+    "verdict",
+    "reviewed_by",
+    "reviewed_at"
+  ],
+  "additionalProperties": false
+}
+```
+
+## ScoringWeights
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "nas": {
+      "default": 1,
+      "type": "number",
+      "minimum": 0
+    },
+    "refusal": {
+      "default": 25,
+      "type": "number",
+      "minimum": 0
+    },
+    "omission": {
+      "default": 10,
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "nas",
+    "refusal",
+    "omission"
+  ],
+  "additionalProperties": false
+}
+```
+
+## Scores
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "bench_version": {
+      "type": "string"
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "split": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "china_sensitive",
+              "non_china_control",
+              "china_neutral_control"
+            ]
+          },
+          "category": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "evasion": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "nas": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "omission_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "euphemism_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "contested_as_settled_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "language",
+          "split",
+          "scope",
+          "category",
+          "type",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "split": {
+            "type": "string",
+            "enum": [
+              "dev",
+              "heldout"
+            ]
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "china_sensitive",
+              "non_china_control",
+              "china_neutral_control"
+            ]
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "evasion": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "nas": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "omission_rate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "euphemism_rate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "contested_as_settled_rate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "language",
+          "split",
+          "item_id",
+          "category",
+          "type",
+          "scope",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "leaderboard": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "composite": {
+            "type": "object",
+            "properties": {
+              "mean": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "se": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "mean",
+              "se",
+              "n"
+            ],
+            "additionalProperties": false
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "evasion": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "nas": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "omission_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "euphemism_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "contested_as_settled_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "composite",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "china_specificity": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "split": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "evasion": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "nas": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "omission_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "euphemism_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "contested_as_settled_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "language",
+          "split",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "language_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "split": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "evasion": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "nas": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "omission_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "euphemism_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "contested_as_settled_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "split",
+          "language",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "host_gaps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "vendor_model": {
+            "type": "string"
+          },
+          "other_model": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "split": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object",
+            "properties": {
+              "refusal_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "evasion": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "nas": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "omission_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "euphemism_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              },
+              "contested_as_settled_rate": {
+                "type": "object",
+                "properties": {
+                  "mean": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  },
+                  "se": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "n": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "mean",
+                  "se",
+                  "n"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "refusal_rate",
+              "evasion",
+              "nas",
+              "omission_rate",
+              "euphemism_rate",
+              "contested_as_settled_rate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "vendor_model",
+          "other_model",
+          "language",
+          "split",
+          "metrics"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "exclusions": {
+      "type": "object",
+      "properties": {
+        "provider_error": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "api_filter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "truncated": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "missing_judges": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "provider_error",
+        "api_filter",
+        "truncated",
+        "missing_judges"
+      ],
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "recorded_samples": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "scored_samples": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "exclusions": {
+            "type": "object",
+            "properties": {
+              "provider_error": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "api_filter": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "truncated": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "missing_judges": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "provider_error",
+              "api_filter",
+              "truncated",
+              "missing_judges"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "model_key",
+          "language",
+          "recorded_samples",
+          "scored_samples",
+          "exclusions"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "run_id",
+    "bench_version",
+    "groups",
+    "items",
+    "leaderboard",
+    "china_specificity",
+    "language_gaps",
+    "host_gaps",
+    "exclusions",
+    "coverage"
+  ],
+  "additionalProperties": false
+}
+```
