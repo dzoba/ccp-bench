@@ -16,7 +16,8 @@
     "test": "pnpm -r test",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "review:build": "node --import tsx packages/web/scripts/build-review.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

@@ -23,6 +23,9 @@ jobs:
       - run: pnpm bench schemas && git diff --exit-code docs/RUN_SCHEMAS.md
       - run: pnpm bench run --config configs/smoke.yaml --stop-after 5
       - run: pnpm bench run --config configs/smoke.yaml
+      - run: pnpm bench judge --run smoke --judges configs/judges-mock.yaml
+      - run: pnpm bench score --run smoke
       - run: pnpm -r lint
       - run: pnpm lint
       - run: pnpm build
+      - run: pnpm review:build

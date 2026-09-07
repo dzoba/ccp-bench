@@ -9,6 +9,12 @@ import {
   PricesSchema,
   ResponseRecordSchema,
   RunConfigSchema,
+  JudgeConfigSchema,
+  JudgeVerdictSchema,
+  JudgeRecordSchema,
+  HumanReviewSchema,
+  ScoringWeightsSchema,
+  ScoresSchema,
 } from '@ccp-bench/schema';
 import { root } from './io';
 
@@ -21,6 +27,12 @@ export async function generateSchemaDocs(): Promise<void> {
     ResponseRecord: ResponseRecordSchema,
     Manifest: ManifestSchema,
     Prices: PricesSchema,
+    JudgeConfig: JudgeConfigSchema,
+    JudgeVerdict: JudgeVerdictSchema,
+    JudgeRecord: JudgeRecordSchema,
+    HumanReview: HumanReviewSchema,
+    ScoringWeights: ScoringWeightsSchema,
+    Scores: ScoresSchema,
   };
   const blocks = Object.entries(schemas).map(
     ([name, schema]) =>

@@ -14,12 +14,124 @@ import { verifyModels } from './providers';
 import { estimateRun } from './estimate';
 import { executeRun } from './run';
 import { generateSchemaDocs } from './schema-docs';
+import { JudgeConfigSchema, ScoringWeightsSchema } from '@ccp-bench/schema';
+import { judgeRun } from './judge/pipeline';
+import { scoreRun } from './score/aggregate';
+import { reviewRun } from './judge/review';
+import { calibrateJudges } from './judge/calibration';
+import { reviewCalibration } from './judge/review-calibration';
 
 const resolve = (path: string) => (isAbsolute(path) ? path : join(root, path));
 const program = new Command()
   .name('bench')
   .description('Reproducible batch benchmark tools');
 program.command('schemas').action(generateSchemaDocs);
+program
+  .command('review-calibration')
+  .requiredOption('--reviewer <name>', 'Human reviewer identity')
+  .action(async (raw: unknown) => {
+    const { reviewer } = z.object({ reviewer: z.string().min(1) }).parse(raw);
+    await reviewCalibration(reviewer);
+  });
+program
+  .command('calibrate')
+  .option('--judges <path>', 'Judge config', 'configs/judges.yaml')
+  .option(
+    '--output <path>',
+    'Private calibration report',
+    'runs/calibration/report.json',
+  )
+  .action(async (raw: unknown) => {
+    const { judges, output } = z
+      .object({ judges: z.string(), output: z.string() })
+      .parse(raw);
+    const report = await calibrateJudges(
+      await readYaml(join(root, 'configs/models.yaml'), ModelRegistrySchema),
+      await readYaml(join(root, 'configs/prices.yaml'), PricesSchema),
+      await readYaml(resolve(judges), JudgeConfigSchema),
+      resolve(output),
+    );
+    console.log(
+      JSON.stringify(
+        {
+          passed: report.passed,
+          human_validated: report.human_validated,
+          judges: report.judges,
+          cost_usd: report.cost_usd,
+        },
+        null,
+        2,
+      ),
+    );
+  });
+program
+  .command('judge')
+  .requiredOption('--run <id>', 'Existing run ID')
+  .option('--set <id>', 'Separate grading revision', 'default')
+  .option('--judges <path>', 'Judge configuration', 'configs/judges.yaml')
+  .action(async (raw: unknown) => {
+    const options = z
+      .object({
+        run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
+        judges: z.string(),
+        set: z.string(),
+      })
+      .parse(raw);
+    const registry = await readYaml(
+      join(root, 'configs/models.yaml'),
+      ModelRegistrySchema,
+    );
+    const prices = await readYaml(
+      join(root, 'configs/prices.yaml'),
+      PricesSchema,
+    );
+    const config = await readYaml(resolve(options.judges), JudgeConfigSchema);
+    const records = await judgeRun(
+      join(root, 'runs', options.run),
+      registry,
+      prices,
+      config,
+      { judgeSet: options.set },
+    );
+    console.log(
+      `Recorded ${records.length} verdicts, ${records.filter((r) => r.judge_error).length} errors`,
+    );
+  });
+program
+  .command('score')
+  .requiredOption('--run <id>', 'Existing run ID')
+  .option('--set <id>', 'Grading revision', 'default')
+  .action(async (raw: unknown) => {
+    const { run, set } = z
+      .object({
+        run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
+        set: z.string(),
+      })
+      .parse(raw);
+    const result = await scoreRun(
+      join(root, 'runs', run),
+      await readYaml(join(root, 'configs/scoring.yaml'), ScoringWeightsSchema),
+      set,
+    );
+    console.log(
+      `Scored ${result.items.length} model-language-item observations; exclusions ${JSON.stringify(result.exclusions)}`,
+    );
+  });
+program
+  .command('review')
+  .requiredOption('--run <id>', 'Existing run ID')
+  .option('--set <id>', 'Grading revision', 'default')
+  .requiredOption('--reviewer <name>', 'Human reviewer identity')
+  .action(async (raw: unknown) => {
+    const { run, reviewer, set } = z
+      .object({
+        run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
+        reviewer: z.string().min(1),
+        set: z.string(),
+      })
+      .parse(raw);
+    await reviewRun(join(root, 'runs', run), reviewer, set);
+  });
 const configOption = (command: Command) =>
   command
     .requiredOption('--config <path>', 'Run configuration YAML')
