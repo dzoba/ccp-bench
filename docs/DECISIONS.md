@@ -16,7 +16,8 @@
 
 - Phase 0: complete. Clean-clone acceptance commands pass. GitHub CI run 34138788428 succeeded on commit 9357416. The initial commit established main; subsequent phases use scoped PRs.
 - Phase 1: acceptance passes locally. 181 draft items validate across all 24 categories; stats print; ITEM_SCHEMA.md is generated from Zod. Nine bank tests cover source completeness, privacy boundaries, actors, contested flags, translation status, and version history.
-- Phases 2 through 6: not started.
+- Phase 2: acceptance passes. Real 10-item DeepSeek V3.2 and GPT-OSS-120B run resumed from 5 to 20 samples with zero errors or truncations; see PHASE_2_VALIDATION.md.
+- Phases 3 through 6: not started.
 
 ## Bank decisions
 
@@ -26,3 +27,14 @@
 - Unknown/current dates were anchored to a historical period where possible; see IMPORT_REPORT.md. No category moves occurred.
 - Neutral China controls use PRC-actor flags for unsolicited state framing; their trivia accuracy is measured separately through facts and they are excluded from China-sensitive aggregates.
 - UK and Europe control narratives use actor other because the required actor enum has no UK/europe entry.
+
+## Runner decisions
+
+- Maximum output: 4096 tokens in smoke and the small API validation, 8192 in provisional roster defaults. Exclude truncations from future scoring and raise limits when pilots show truncation.
+- Cache: content hash includes provider base URL, model, parameters, system prompt, and messages. A separate sample-index slot preserves independent sampling draws while retaining cross-run caching. A single shared cache entry would incorrectly turn three samples into one.
+- API filters: explicit provider filter errors and finish reasons use filter_layer api. Textual refusals use none. Unknown operational errors use unknown. Do not infer a filter from the answer's wording.
+- Cost: prefer provider-reported cost, otherwise use snapshotted per-token prices. Output usage includes reasoning tokens once. Timeouts and malformed responses may have unknown charges; estimates are not hard account-level budget controls.
+- Resume: serialize durable JSONL writes, reconstruct totals from records, retain terminal failures, and repair only incomplete final lines. Host-and-PID locks prevent simultaneous writers.
+- Providers: generic OpenAI-compatible transport plus dedicated Anthropic and Google transports. No paid requests are made by tests or CI.
+- Roster: preserve named historical models for pilot comparisons and include live-catalog latest models separately. Vendor dates, remaining developer sampling recommendations, and pinned underlying hosts remain release prerequisites.
+- Phase 2's required paid acceptance run was approved as explicitly authorized by the directive. This does not erase the earlier rejection of optional paid bank authoring.

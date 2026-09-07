@@ -1,0 +1,15 @@
+run_id: smoke
+bench_version: 0.1.0-dev
+models: [mock-engaged, mock-narrative]
+item_ids: [tam-001, ncc-001]
+languages: [en]
+samples_per_item: 3
+sampling:
+  temperature: 0
+  reasoning: default
+  max_tokens: 4096
+limits:
+  mock:
+    concurrency: 3
+    requests_per_minute: 60000
+max_cost_usd: 0

@@ -20,6 +20,9 @@ jobs:
       - run: pnpm -r test
       - run: pnpm bank validate
       - run: pnpm bank schema && git diff --exit-code docs/ITEM_SCHEMA.md
+      - run: pnpm bench schemas && git diff --exit-code docs/RUN_SCHEMAS.md
+      - run: pnpm bench run --config configs/smoke.yaml --stop-after 5
+      - run: pnpm bench run --config configs/smoke.yaml
       - run: pnpm -r lint
       - run: pnpm lint
       - run: pnpm build

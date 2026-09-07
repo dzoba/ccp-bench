@@ -1,0 +1,447 @@
+- key: deepseek-v3-2-openrouter
+  display: 'DeepSeek: DeepSeek V3.2 (OpenRouter)'
+  vendor: DeepSeek
+  origin: prc
+  weights: open
+  family: deepseek
+  weights_id: deepseek/deepseek-v3.2
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: deepseek/deepseek-v3.2
+  release_date: 2025-12-01
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    temperature: 1
+    max_tokens: 8192
+    reasoning: default
+  settings_source: https://api-docs.deepseek.com/quick_start/parameter_settings/
+- key: deepseek-v4-pro-0813-openrouter
+  display: 'DeepSeek: DeepSeek V4 Pro 0813 (OpenRouter)'
+  vendor: DeepSeek
+  origin: prc
+  weights: open
+  family: deepseek
+  weights_id: deepseek/deepseek-v4-pro-0813
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: deepseek/deepseek-v4-pro-0813
+  release_date: 2026-08-12
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: deepseek-r1-0528-openrouter
+  display: 'DeepSeek: R1 0528 (OpenRouter)'
+  vendor: DeepSeek
+  origin: prc
+  weights: open
+  family: deepseek
+  weights_id: deepseek/deepseek-r1-0528
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: deepseek/deepseek-r1-0528
+  release_date: 2025-05-28
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: qwen3-235b-a22b-2507-openrouter
+  display: 'Qwen: Qwen3 235B A22B Instruct 2507 (OpenRouter)'
+  vendor: Alibaba
+  origin: prc
+  weights: open
+  family: qwen
+  weights_id: qwen/qwen3-235b-a22b-2507
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: qwen/qwen3-235b-a22b-2507
+  release_date: 2025-07-21
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    temperature: 0.7
+    top_p: 0.8
+    max_tokens: 8192
+    reasoning: default
+  settings_source: https://huggingface.co/Qwen/Qwen3-235B-A22B-Instruct-2507
+- key: qwen3-235b-a22b-thinking-2507-openrouter
+  display: 'Qwen: Qwen3 235B A22B Thinking 2507 (OpenRouter)'
+  vendor: Alibaba
+  origin: prc
+  weights: open
+  family: qwen
+  weights_id: qwen/qwen3-235b-a22b-thinking-2507
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: qwen/qwen3-235b-a22b-thinking-2507
+  release_date: 2025-07-25
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: kimi-k2-5-openrouter
+  display: 'MoonshotAI: Kimi K2.5 (OpenRouter)'
+  vendor: Moonshot
+  origin: prc
+  weights: open
+  family: kimi
+  weights_id: moonshotai/kimi-k2.5
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: moonshotai/kimi-k2.5
+  release_date: 2026-01-27
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    temperature: 1
+    max_tokens: 8192
+    reasoning: default
+  settings_source: https://platform.kimi.ai/docs/guide/benchmark-best-practice
+- key: kimi-k2-thinking-openrouter
+  display: 'MoonshotAI: Kimi K2 Thinking (OpenRouter)'
+  vendor: Moonshot
+  origin: prc
+  weights: open
+  family: kimi
+  weights_id: moonshotai/kimi-k2-thinking
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: moonshotai/kimi-k2-thinking
+  release_date: 2025-11-06
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: glm-5-openrouter
+  display: 'Z.ai: GLM 5 (OpenRouter)'
+  vendor: Z.ai
+  origin: prc
+  weights: open
+  family: glm
+  weights_id: z-ai/glm-5
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: z-ai/glm-5
+  release_date: 2026-02-11
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: minimax-m2-5-openrouter
+  display: 'MiniMax: MiniMax M2.5 (OpenRouter)'
+  vendor: MiniMax
+  origin: prc
+  weights: open
+  family: minimax
+  weights_id: minimax/minimax-m2.5
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: minimax/minimax-m2.5
+  release_date: 2026-02-12
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: ernie-4-5-vl-424b-a47b-openrouter
+  display: 'Baidu: ERNIE 4.5 VL 424B A47B  (OpenRouter)'
+  vendor: Baidu
+  origin: prc
+  weights: open
+  family: ernie
+  weights_id: baidu/ernie-4.5-vl-424b-a47b
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: baidu/ernie-4.5-vl-424b-a47b
+  release_date: 2025-06-30
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: gpt-6-astra-openrouter
+  display: 'OpenAI: GPT-6 Astra (OpenRouter)'
+  vendor: OpenAI
+  origin: us
+  weights: closed
+  family: openai
+  weights_id: openai/gpt-6-astra
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: openai/gpt-6-astra
+  release_date: 2026-09-04
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: claude-fable-5-1-openrouter
+  display: 'Anthropic: Claude Fable 5.1 (OpenRouter)'
+  vendor: Anthropic
+  origin: us
+  weights: closed
+  family: anthropic
+  weights_id: anthropic/claude-fable-5.1
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: anthropic/claude-fable-5.1
+  release_date: 2026-09-01
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: claude-sonnet-5-openrouter
+  display: 'Anthropic: Claude Sonnet 5 (OpenRouter)'
+  vendor: Anthropic
+  origin: us
+  weights: closed
+  family: anthropic
+  weights_id: anthropic/claude-sonnet-5
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: anthropic/claude-sonnet-5
+  release_date: 2026-06-30
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: gemma-4-31b-it-free-openrouter
+  display: 'Google: Gemma 4 31B (free) (OpenRouter)'
+  vendor: Google
+  origin: us
+  weights: open
+  family: google
+  weights_id: google/gemma-4-31b-it:free
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: google/gemma-4-31b-it:free
+  release_date: 2026-04-02
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: gemini-3-8-flash-openrouter
+  display: 'Google: Gemini 3.8 Flash (OpenRouter)'
+  vendor: Google
+  origin: us
+  weights: closed
+  family: google
+  weights_id: google/gemini-3.8-flash
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: google/gemini-3.8-flash
+  release_date: 2026-09-02
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: gemini-3-1-pro-preview-openrouter
+  display: 'Google: Gemini 3.1 Pro Preview (OpenRouter)'
+  vendor: Google
+  origin: us
+  weights: closed
+  family: google
+  weights_id: google/gemini-3.1-pro-preview
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: google/gemini-3.1-pro-preview
+  release_date: 2026-02-19
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: gpt-oss-120b-openrouter
+  display: 'OpenAI: gpt-oss-120b (OpenRouter)'
+  vendor: OpenAI
+  origin: us
+  weights: open
+  family: openai
+  weights_id: openai/gpt-oss-120b
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: openai/gpt-oss-120b
+  release_date: 2025-08-05
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: llama-4-maverick-openrouter
+  display: 'Meta: Llama 4 Maverick (OpenRouter)'
+  vendor: Meta
+  origin: us
+  weights: open
+  family: llama
+  weights_id: meta-llama/llama-4-maverick
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: meta-llama/llama-4-maverick
+  release_date: 2025-04-05
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: mistral-large-2512-openrouter
+  display: 'Mistral: Mistral Large 3 2512 (OpenRouter)'
+  vendor: Mistral
+  origin: eu
+  weights: open
+  family: mistral
+  weights_id: mistralai/mistral-large-2512
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: mistralai/mistral-large-2512
+  release_date: 2025-12-01
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: grok-4-6-openrouter
+  display: 'SpaceXAI: Grok 4.6 (OpenRouter)'
+  vendor: xAI
+  origin: us
+  weights: closed
+  family: grok
+  weights_id: x-ai/grok-4.6
+  host: third_party
+  endpoint:
+    provider: openrouter
+    model: x-ai/grok-4.6
+  release_date: 2026-08-12
+  notes: Catalog snapshot 2026-09-07. release_date currently records catalog
+    availability, pending vendor-release verification. OpenRouter may route to
+    different underlying hosts; pin a provider before a controlled host-gap
+    study.
+  recommended:
+    max_tokens: 8192
+    reasoning: default
+  settings_source: Provider defaults for unspecified sampling fields; developer
+    recommendations require verification before the full release run.
+- key: mock-engaged
+  display: Mock engaged fixture
+  vendor: Fixture
+  origin: us
+  weights: open
+  family: mock-engaged
+  weights_id: mock-engaged
+  host: local
+  endpoint:
+    provider: mock
+    model: mock-engaged
+  release_date: 2026-09-07
+  notes: Synthetic software fixture, never a benchmark result.
+- key: mock-narrative
+  display: Mock narrative fixture
+  vendor: Fixture
+  origin: prc
+  weights: open
+  family: mock-narrative
+  weights_id: mock-narrative
+  host: local
+  endpoint:
+    provider: mock
+    model: mock-narrative
+  release_date: 2026-09-07
+  notes: Synthetic software fixture, never a benchmark result.
