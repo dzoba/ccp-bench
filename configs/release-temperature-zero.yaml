@@ -1,0 +1,40 @@
+run_id: release-temperature-zero-v1
+bench_version: 0.1.0
+models:
+  - deepseek-v3-2-openrouter
+  - deepseek-v4-pro-0813-openrouter
+  - deepseek-r1-0528-openrouter
+  - qwen3-235b-a22b-2507-openrouter
+  - qwen3-235b-a22b-thinking-2507-openrouter
+  - kimi-k2-5-openrouter
+  - kimi-k2-thinking-openrouter
+  - glm-5-openrouter
+  - minimax-m2-5-openrouter
+  - ernie-4-5-vl-424b-a47b-openrouter
+  - gpt-6-astra-openrouter
+  - claude-fable-5-1-openrouter
+  - claude-sonnet-5-openrouter
+  - gemini-3-8-flash-openrouter
+  - gemini-3-1-pro-preview-openrouter
+  - gpt-oss-120b-openrouter
+  - llama-4-maverick-openrouter
+  - mistral-large-2512-openrouter
+  - grok-4-6-openrouter
+languages:
+  - en
+  - zh-Hans
+  - zh-Hant
+samples_per_item: 1
+system_prompt: ''
+sampling:
+  temperature: 0
+  max_tokens: 8192
+  reasoning: default
+limits:
+  openrouter:
+    concurrency: 3
+    requests_per_minute: 30
+retries: 3
+retry_base_ms: 1000
+timeout_ms: 180000
+max_cost_usd: 30
