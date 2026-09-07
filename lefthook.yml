@@ -1,0 +1,5 @@
+pre-commit:
+  commands:
+    format:
+      glob: '*.{ts,tsx,js,json,yaml,yml,css,md}'
+      run: pnpm exec prettier --check {staged_files}

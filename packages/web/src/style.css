@@ -1,0 +1,22 @@
+@import 'tailwindcss';
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #172b35;
+  background: #f5f4ef;
+}
+main {
+  max-width: 70rem;
+  margin: auto;
+  padding: 6rem 1.5rem;
+}
+h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.05;
+  margin: 2rem 0;
+}
+p {
+  max-width: 46rem;
+  line-height: 1.65;
+}

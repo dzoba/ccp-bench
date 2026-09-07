@@ -1,0 +1,34 @@
+{
+  "name": "ccp-bench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "bench": "pnpm --filter @ccp-bench/runner cli",
+    "bank": "pnpm --filter @ccp-bench/bank cli",
+    "dev": "pnpm --filter @ccp-bench/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^22.19.0",
+    "eslint": "^9.39.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.5.0",
+    "lefthook": "^2.0.0",
+    "prettier": "^3.7.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vitest": "^4.0.0"
+  }
+}
