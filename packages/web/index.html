@@ -2,12 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="theme-color" content="#216d62" />
+    <link
+      rel="preload"
+      href="/fonts/ibm-plex-sans.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/source-serif-4.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <title>Leaderboard | CCP Bench</title>
     <meta
       name="description"
-      content="An open benchmark measuring narrative framing, factual omission, refusal, and evasion in language models."
+      content="Compare refusal, factual omission, and narrative alignment in model answers, with evidence and uncertainty beside each score."
     />
-    <title>CCP Bench</title>
+    <meta
+      property="og:title"
+      content="CCP Bench: How models answer sensitive questions"
+    />
+    <meta
+      property="og:description"
+      content="An open benchmark of refusal, omission, and narrative alignment. Inspect the evidence behind every score."
+    />
+    <meta property="og:image" content="%VITE_SITE_URL%/og.png" />
+    <meta property="og:url" content="%VITE_SITE_URL%/" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>
   <body>
     <div id="root"></div>

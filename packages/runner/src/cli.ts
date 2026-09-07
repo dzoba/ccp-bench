@@ -20,12 +20,98 @@ import { scoreRun } from './score/aggregate';
 import { reviewRun } from './judge/review';
 import { calibrateJudges } from './judge/calibration';
 import { reviewCalibration } from './judge/review-calibration';
+import { importReview } from './judge/import-review';
+import { indexPublishedRun } from './publish/index';
+import { publishRun } from './publish/cloud';
+import { exportStatic } from './publish/static';
 
 const resolve = (path: string) => (isAbsolute(path) ? path : join(root, path));
 const program = new Command()
   .name('bench')
   .description('Reproducible batch benchmark tools');
 program.command('schemas').action(generateSchemaDocs);
+program
+  .command('index-published')
+  .requiredOption('--target <target>')
+  .action(async (raw: unknown) => {
+    const { target } = z
+      .object({ target: z.enum(['staging', 'prod']) })
+      .parse(raw);
+    console.log(JSON.stringify(await indexPublishedRun(target), null, 2));
+  });
+program
+  .command('publish')
+  .requiredOption('--run <id>')
+  .requiredOption('--target <target>')
+  .option('--set <id>', 'Grading revision', 'default')
+  .option('--provisional')
+  .option('--calibration <path>')
+  .option('--dry-run')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({
+        run: z.string(),
+        target: z.enum(['staging', 'prod']),
+        set: z.string(),
+        provisional: z.boolean().default(false),
+        calibration: z.string().optional(),
+        dryRun: z.boolean().default(false),
+      })
+      .parse(raw);
+    console.log(
+      JSON.stringify(
+        await publishRun(o.run, {
+          ...o,
+          judgeSet: o.set,
+          calibration: o.calibration ? resolve(o.calibration) : undefined,
+        }),
+        null,
+        2,
+      ),
+    );
+  });
+program
+  .command('export')
+  .requiredOption('--run <id>')
+  .option('--set <id>', 'Grading revision', 'default')
+  .option('--provisional', 'Explicitly label unvalidated results')
+  .option('--calibration <path>')
+  .option('--dry-run')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({
+        run: z.string(),
+        set: z.string(),
+        provisional: z.boolean().default(false),
+        calibration: z.string().optional(),
+        dryRun: z.boolean().default(false),
+      })
+      .parse(raw);
+    console.log(
+      JSON.stringify(
+        await exportStatic(o.run, {
+          judgeSet: o.set,
+          provisional: o.provisional,
+          calibration: o.calibration ? resolve(o.calibration) : undefined,
+          dryRun: o.dryRun,
+        }),
+        null,
+        2,
+      ),
+    );
+  });
+program
+  .command('import-review')
+  .requiredOption('--file <path>')
+  .option('--dry-run')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({ file: z.string(), dryRun: z.boolean().default(false) })
+      .parse(raw);
+    console.log(
+      JSON.stringify(await importReview(resolve(o.file), o.dryRun), null, 2),
+    );
+  });
 program
   .command('review-calibration')
   .requiredOption('--reviewer <name>', 'Human reviewer identity')

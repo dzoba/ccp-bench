@@ -1,35 +1,23 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { createHash } from 'node:crypto';
+import { reviewDataset } from '../../runner/src/judge/import-review';
+import { CalibrationCaseSchema } from '../../runner/src/judge/calibration';
+import { z } from 'zod';
 import { loadBank } from '../../bank/src/index';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
-const cases = JSON.parse(
-  await readFile(
-    root + 'packages/runner/fixtures/judge-calibration/cases.json',
-    'utf8',
-  ),
-) as { id: string; item_id: string; response: string; expected: unknown }[];
-const items = (await loadBank())
-  .filter((i) => cases.some((c) => c.item_id === i.id))
-  .sort(
-    (a, b) =>
-      cases.findIndex((c) => c.item_id === a.id) -
-      cases.findIndex((c) => c.item_id === b.id),
+const cases = z
+  .array(CalibrationCaseSchema)
+  .parse(
+    JSON.parse(
+      await readFile(
+        root + 'packages/runner/fixtures/judge-calibration/cases.json',
+        'utf8',
+      ),
+    ),
   );
-const content = {
-  cases: cases.map(({ id, item_id, response, expected }) => ({
-    id,
-    item_id,
-    response,
-    expected,
-  })),
-  items,
-};
-const fingerprint = createHash('sha256')
-  .update(JSON.stringify(content))
-  .digest('hex');
+const { fingerprint, ...content } = reviewDataset(cases, await loadBank());
 execFileSync(
   'pnpm',
   ['exec', 'vite', 'build', '--config', 'scripts/review-vite.config.ts'],

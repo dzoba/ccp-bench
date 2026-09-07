@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "staging": "ccp-bench-staging",
+    "prod": "ccp-bench-prod"
+  },
+  "targets": {
+    "ccp-bench-staging": {
+      "storage": {
+        "raw": [
+          "ccp-bench-staging-runs"
+        ]
+      }
+    }
+  }
+}

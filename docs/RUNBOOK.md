@@ -81,3 +81,35 @@ Re-run calibration after human validation. Approval metadata alone does not trig
 ## Release prerequisites still pending
 
 The full roster requires vendor-host comparisons for open weights, bilingual prompts, two-judge calibration, scoring, held-out leak checks, Firebase staging and production setup, a publish PR, and performance/accessibility verification. These gates must pass before tagging v0.1.0. Doubao remains optional and requires a Volcengine account. No production deployment has occurred.
+
+## Staging publication and rollback
+
+The provisional site is https://ccp-bench-staging.web.app. Firebase project `ccp-bench-staging` has Firestore in `nam5` and the private bucket `gs://ccp-bench-staging-runs` in `us-central1`. Storage uses uniform access, enforced public access prevention, and deny-all Firebase client rules. Only public dev transcripts go to Hosting. The raw archive includes failed and superseded grading revisions for auditability.
+
+```sh
+pnpm bench publish --run pilot-20 --set funded --target staging --provisional --calibration runs/calibration/pilot-judges-budget4096.json --dry-run
+pnpm bench publish --run pilot-20 --set funded --target staging --provisional --calibration runs/calibration/pilot-judges-budget4096.json
+```
+
+The dry run validates schemas, publication gates, size, and held-out privacy without changing local or remote files. The real command creates an isolated worktree from `origin/main`, exports immutable content-addressed JSON, uploads the private run archive, and opens a publication PR. It preserves the working checkout. A passing main CI run triggers the staging Hosting workflow using a short-lived Workload Identity Federation credential. That identity is restricted to this repository's `deploy.yml` on main and can update the existing staging site; it cannot create/delete sites or read/write Firestore or raw Storage.
+
+After successful deployment, the maintainer writes the public Firestore index using their local Google identity:
+
+```sh
+pnpm bench index-published --target staging
+```
+
+This final index step is separate because the automated deployment identity deliberately has no database permissions. The website reads static JSON, so a delayed index does not affect the leaderboard. The command verifies that Hosting serves the same version as the local checkout before writing. The index contains public metadata and coverage only.
+
+To roll back staging, dispatch the **Deploy staging** workflow with a known-good main commit. The workflow rejects commits outside main history. Then run the index command from that checkout. Older content-addressed data directories remain available. For local staging builds, use `pnpm --filter @ccp-bench/web exec vite build --mode staging`; `.env.staging` holds the public Firebase web config. CI supplies it as explicit public environment variables. Set `VITE_SITE_URL` consistently for social cards, canonical URLs, and sitemap generation.
+
+GitHub maintainer login is implemented but the OAuth provider still requires a GitHub OAuth application's client ID and secret. Configure its callback as `https://ccp-bench-staging.firebaseapp.com/__/auth/handler`, enable GitHub in Firebase Authentication, and enroll the actual maintainer UID in `admins/{uid}` using an authorized administrative identity. No browser client can enroll itself. Do not invent an admin UID or commit the OAuth secret.
+
+## Import browser review answers
+
+```sh
+pnpm bench import-review --file /path/to/downloaded-answers.json --dry-run
+pnpm bench import-review --file /path/to/downloaded-answers.json
+```
+
+The importer verifies the original dataset fingerprint, case IDs, timestamps, and item-specific verdict constraints. Only explicit approved/corrected answers become human review records. Changed verdicts must be marked corrected. Pending and flagged answers remain unresolved. A private audit file preserves every note, answer, and the pre-import cases. A stale fingerprint requires reconciliation against its original snapshot; never silently apply it to changed prompts. Rebuild the review page and rerun calibration with a new output path after label changes. Operational approval of infrastructure never counts as a calibration answer.
