@@ -39,3 +39,7 @@
 - Providers: generic OpenAI-compatible transport plus dedicated Anthropic and Google transports. No paid requests are made by tests or CI.
 - Roster: preserve named historical models for pilot comparisons and include live-catalog latest models separately. Vendor dates, remaining developer sampling recommendations, and pinned underlying hosts remain release prerequisites.
 - Phase 2's required paid acceptance run was approved as explicitly authorized by the directive. This does not erase the earlier rejection of optional paid bank authoring.
+
+## Owner direction, 2026-09-07
+
+The owner explicitly asked to continue all remaining implementation while human calibration review is pending, and to incorporate commentary when supplied. This supersedes the sequential wait on Phase 3 and the expected-ranking gate. Empirical results stay unchanged and provisional; software development, staging, translations, discovery, and full evaluation may proceed. Human validation is never inferred. Validated publication still requires actual reviewed calibration; a clearly labeled provisional staging export is allowed.

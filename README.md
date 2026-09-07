@@ -2,7 +2,7 @@
 
 An open benchmark of refusal, evasion, narrative framing, and factual omission on China-sensitive questions, compared with non-China political controls.
 
-The project is being implemented from [the build directive](ccp-bench-directive.md). Results are not yet available. Reference answers are research drafts, not final truth. Contested political positions are assessed for presentation as settled claims, rather than for which position is held.
+The project is being implemented from [the build directive](ccp-bench-directive.md). An explicitly provisional English pilot is available at [the staging site](https://ccp-bench-staging.web.app). Human calibration review, bilingual and held-out evaluation, and the full roster release remain pending. Reference answers are research drafts, not final truth. Contested political positions are assessed for presentation as settled claims, rather than for which position is held.
 
 ## Development
 

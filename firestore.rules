@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function admin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function optionalText(data, field, maximum) {
+      return !(field in data) || (data[field] is string && data[field].size() <= maximum);
+    }
+    function validDispute() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['item_id','field','text','status','created_at'])
+        && d.keys().hasOnly(['item_id','field','text','source_url','email','status','created_at','honeypot'])
+        && d.item_id is string && d.item_id.matches('^[a-z]{3}-[0-9]{3}$')
+        && d.field in ['prompt','flag','fact','reference','translation']
+        && d.text is string && d.text.size() >= 10 && d.text.size() <= 5000
+        && optionalText(d, 'email', 254) && optionalText(d, 'source_url', 2048)
+        && (!('source_url' in d) || d.source_url == '' || d.source_url.matches('^https?://.*'))
+        && (!('honeypot' in d) || d.honeypot == '')
+        && d.status == 'open' && d.created_at == request.time;
+    }
+    match /runs/{runId} {
+      allow read: if resource.data.published == true;
+      allow write: if admin();
+    }
+    match /disputes/{id} {
+      allow create: if validDispute();
+      allow read, delete: if admin();
+      allow update: if admin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','resolution_pr','resolved_at'])
+        && request.resource.data.status in ['open','resolved','dismissed']
+        && optionalText(request.resource.data, 'resolution_pr', 2048);
+    }
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

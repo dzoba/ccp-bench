@@ -79,51 +79,9 @@ async function calibrateJudgesUnlocked(
   config: JudgeConfig,
   destination: string,
 ): Promise<z.infer<typeof CalibrationReportSchema>> {
-  const cases = await readJson(
-    join(root, 'packages/runner/fixtures/judge-calibration/cases.json'),
-    z.array(CalibrationCaseSchema).length(40),
-  );
-  const bank = await loadBank();
-  const judges = config.judges.map((key) => {
-    const model = registry.find((m) => m.key === key);
-    if (!model || model.origin === 'prc' || model.endpoint.provider === 'mock')
-      throw new Error(`Calibration requires a real non-PRC judge: ${key}`);
-    return model;
-  });
-  if (new Set(judges.map((m) => m.family)).size !== judges.length)
-    throw new Error('Calibration judge families must be distinct');
+  const { cases, bank, judges, system, schema, identity } =
+    await calibrationInputs(registry, config);
   await verifyModels(judges);
-  const system = await readFile(
-    new URL('prompts/v1.md', import.meta.url),
-    'utf8',
-  );
-  const schema = z.toJSONSchema(JudgeVerdictSchema);
-  const identity = {
-    prompt_hash: hash({ system, schema }),
-    cases_hash: hash({
-      cases: cases.map((c) => ({
-        id: c.id,
-        item_id: c.item_id,
-        response: c.response,
-        expected: c.expected,
-      })),
-      items: bank
-        .filter((i) => cases.some((c) => c.item_id === i.id))
-        .map((i) => ({
-          id: i.id,
-          version: i.version,
-          prompts: i.prompts,
-          type: i.type,
-          contested: i.contested,
-          contested_note: i.contested_note,
-          narrative_flags: i.narrative_flags,
-          required_facts: i.required_facts,
-          reference_answer: i.reference_answer,
-        })),
-    }),
-    config_hash: hash(config),
-    model_hash: hash(judges),
-  };
   let results: z.infer<typeof CalibrationResultSchema>[] = [];
   try {
     const previous = await readJson(destination, CalibrationReportSchema);
@@ -278,4 +236,55 @@ async function calibrateJudgesUnlocked(
   const final = report();
   await atomicJson(destination, final);
   return final;
+}
+
+export async function calibrationInputs(
+  registry: Model[],
+  config: JudgeConfig,
+) {
+  const cases = await readJson(
+    join(root, 'packages/runner/fixtures/judge-calibration/cases.json'),
+    z.array(CalibrationCaseSchema).length(40),
+  );
+  const bank = await loadBank();
+  const judges = config.judges.map((key) => {
+    const model = registry.find((m) => m.key === key);
+    if (!model || model.origin === 'prc' || model.endpoint.provider === 'mock')
+      throw new Error(`Calibration requires a real non-PRC judge: ${key}`);
+    return model;
+  });
+  if (new Set(judges.map((m) => m.family)).size !== judges.length)
+    throw new Error('Calibration judge families must be distinct');
+  const system = await readFile(
+    new URL('prompts/v1.md', import.meta.url),
+    'utf8',
+  );
+  const schema = z.toJSONSchema(JudgeVerdictSchema);
+  const identity = {
+    prompt_hash: hash({ system, schema }),
+    cases_hash: hash({
+      cases: cases.map((c) => ({
+        id: c.id,
+        item_id: c.item_id,
+        response: c.response,
+        expected: c.expected,
+      })),
+      items: bank
+        .filter((i) => cases.some((c) => c.item_id === i.id))
+        .map((i) => ({
+          id: i.id,
+          version: i.version,
+          prompts: i.prompts,
+          type: i.type,
+          contested: i.contested,
+          contested_note: i.contested_note,
+          narrative_flags: i.narrative_flags,
+          required_facts: i.required_facts,
+          reference_answer: i.reference_answer,
+        })),
+    }),
+    config_hash: hash(config),
+    model_hash: hash(judges),
+  };
+  return { cases, bank, judges, system, schema, identity };
 }

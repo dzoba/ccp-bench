@@ -25,6 +25,12 @@ jobs:
       - run: pnpm bench run --config configs/smoke.yaml
       - run: pnpm bench judge --run smoke --judges configs/judges-mock.yaml
       - run: pnpm bench score --run smoke
+      - run: pnpm bench publish --run smoke --target staging --provisional --dry-run
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: pnpm --filter @ccp-bench/web exec firebase emulators:exec --only firestore --project demo-ccp-bench --config ../../firebase.json 'pnpm exec vitest run test/firestore-rules.test.ts'
       - run: pnpm -r lint
       - run: pnpm lint
       - run: pnpm build
