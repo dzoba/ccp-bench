@@ -2,7 +2,7 @@ import { mkdir, writeFile, rm, rename, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { loadBank } from '@ccp-bench/bank';
+import { loadEvaluationBank } from '@ccp-bench/bank';
 import {
   ManifestSchema,
   ScoresSchema,
@@ -72,11 +72,12 @@ export async function exportStatic(
     calibration?: string;
     destination?: string;
     dryRun?: boolean;
+    runDirectory?: string;
   } = {},
 ) {
   if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(runId))
     throw new Error('Invalid run ID');
-  const directory = join(root, 'runs', runId),
+  const directory = join(options.runDirectory ?? join(root, 'runs'), runId),
     grades = judgeDirectory(directory, options.judgeSet);
   const manifest = await readJson(
     join(directory, 'manifest.json'),
@@ -175,7 +176,7 @@ export async function exportStatic(
     throw new Error(
       'Validated publication requires human calibration and no judge-error rate above 2% per model',
     );
-  const bank = await loadBank();
+  const bank = await loadEvaluationBank();
   const allItems = [
     ...new Map([...bank, ...manifest.items].map((i) => [i.id, i])).values(),
   ];

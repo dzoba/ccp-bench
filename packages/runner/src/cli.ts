@@ -8,7 +8,7 @@ import {
   PricesSchema,
   RunConfigSchema,
 } from '@ccp-bench/schema';
-import { loadBank } from '@ccp-bench/bank';
+import { loadEvaluationBank } from '@ccp-bench/bank';
 import { readYaml, root } from './io';
 import { verifyModels } from './providers';
 import { estimateRun } from './estimate';
@@ -21,6 +21,7 @@ import { reviewRun } from './judge/review';
 import { calibrateJudges } from './judge/calibration';
 import { reviewCalibration } from './judge/review-calibration';
 import { importReview } from './judge/import-review';
+import { discover } from './discover/pipeline';
 import { indexPublishedRun } from './publish/index';
 import { publishRun } from './publish/cloud';
 import { exportStatic } from './publish/static';
@@ -29,6 +30,52 @@ const resolve = (path: string) => (isAbsolute(path) ? path : join(root, path));
 const program = new Command()
   .name('bench')
   .description('Reproducible batch benchmark tools');
+program
+  .command('discover')
+  .requiredOption('--topics <path>')
+  .requiredOption('--pilot-models <keys>', 'Four comma-separated model keys')
+  .option('--n <count>', 'Maximum generated candidates', '200')
+  .option(
+    '--generator <key>',
+    'Non-PRC question generator',
+    'claude-sonnet-5-openrouter',
+  )
+  .option('--judge <key>', 'Divergence judge', 'mistral-large-2512-openrouter')
+  .option(
+    '--embedding-model <id>',
+    'Embedding model',
+    'openai/text-embedding-3-small',
+  )
+  .option('--max-cost <usd>', 'Total budget', '10')
+  .option('--output <path>')
+  .option('--dry-run')
+  .action(async (raw: unknown) => {
+    const o = z
+      .object({
+        topics: z.string(),
+        pilotModels: z.string(),
+        n: z.coerce.number().int().positive().max(10000),
+        generator: z.string(),
+        judge: z.string(),
+        embeddingModel: z.string(),
+        maxCost: z.coerce.number().positive(),
+        output: z.string().optional(),
+        dryRun: z.boolean().default(false),
+      })
+      .parse(raw);
+    console.log(
+      JSON.stringify(
+        await discover({
+          ...o,
+          topics: resolve(o.topics),
+          pilotModels: o.pilotModels.split(',').map((k) => k.trim()),
+          output: o.output ? resolve(o.output) : undefined,
+        }),
+        null,
+        2,
+      ),
+    );
+  });
 program.command('schemas').action(generateSchemaDocs);
 program
   .command('index-published')
@@ -153,6 +200,7 @@ program
 program
   .command('judge')
   .requiredOption('--run <id>', 'Existing run ID')
+  .option('--concurrency <count>', 'Concurrent judge requests', '1')
   .option('--set <id>', 'Separate grading revision', 'default')
   .option('--judges <path>', 'Judge configuration', 'configs/judges.yaml')
   .action(async (raw: unknown) => {
@@ -161,6 +209,7 @@ program
         run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
         judges: z.string(),
         set: z.string(),
+        concurrency: z.coerce.number().int().min(1).max(16),
       })
       .parse(raw);
     const registry = await readYaml(
@@ -172,16 +221,32 @@ program
       PricesSchema,
     );
     const config = await readYaml(resolve(options.judges), JudgeConfigSchema);
-    const records = await judgeRun(
-      join(root, 'runs', options.run),
-      registry,
-      prices,
-      config,
-      { judgeSet: options.set },
-    );
-    console.log(
-      `Recorded ${records.length} verdicts, ${records.filter((r) => r.judge_error).length} errors`,
-    );
+    const controller = new AbortController();
+    const stop = () => {
+      console.log('Finishing in-flight judge requests before stopping.');
+      controller.abort();
+    };
+    process.once('SIGINT', stop);
+    process.once('SIGTERM', stop);
+    try {
+      const records = await judgeRun(
+        join(root, 'runs', options.run),
+        registry,
+        prices,
+        config,
+        {
+          judgeSet: options.set,
+          concurrency: options.concurrency,
+          signal: controller.signal,
+        },
+      );
+      console.log(
+        `Recorded ${records.length} verdicts, ${records.filter((r) => r.judge_error).length} errors`,
+      );
+    } finally {
+      process.off('SIGINT', stop);
+      process.off('SIGTERM', stop);
+    }
   });
 program
   .command('score')
@@ -237,7 +302,7 @@ async function inputs(raw: unknown) {
     if (!model) throw new Error(`Unknown model key ${key}`);
     return model;
   });
-  const bank = (await loadBank()).filter(
+  const bank = (await loadEvaluationBank()).filter(
     (item) => item.review_status !== 'retired',
   );
   const items = config.item_ids

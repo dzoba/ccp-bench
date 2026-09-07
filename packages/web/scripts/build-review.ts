@@ -18,6 +18,12 @@ const cases = z
     ),
   );
 const { fingerprint, ...content } = reviewDataset(cases, await loadBank());
+await mkdir(root + 'runs/calibration/datasets', { recursive: true });
+await writeFile(
+  root + 'runs/calibration/datasets/' + fingerprint + '.json',
+  JSON.stringify({ ...content, fingerprint }) + '\n',
+  { mode: 0o600 },
+);
 execFileSync(
   'pnpm',
   ['exec', 'vite', 'build', '--config', 'scripts/review-vite.config.ts'],

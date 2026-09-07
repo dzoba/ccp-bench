@@ -4,7 +4,7 @@ dist/
 !.env.example
 runs/
 private/
-discover/
+/discover/
 .cache/
 .firebase/
 *-debug.log

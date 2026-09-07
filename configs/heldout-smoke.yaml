@@ -1,0 +1,14 @@
+run_id: heldout-smoke-v2
+bench_version: 0.1.0-dev
+models: [mock-engaged, mock-narrative]
+languages: [en, zh-Hans, zh-Hant]
+samples_per_item: 1
+sampling:
+  temperature: 0
+  reasoning: default
+  max_tokens: 4096
+limits:
+  mock:
+    concurrency: 8
+    requests_per_minute: 600000
+max_cost_usd: 0

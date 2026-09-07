@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { loadBank } from '../src/index';
 import { registerVersions, validateVersions } from '../src/versions';
 
-const [item] = await loadBank();
-if (!item) throw new Error('Missing fixture item');
+const [source] = await loadBank();
+if (!source) throw new Error('Missing fixture item');
+const item = { ...source, version: 1 };
 describe('stable item versions', () => {
   it('rejects wording changes without a version increment', () => {
     const ledger = registerVersions([item], {});

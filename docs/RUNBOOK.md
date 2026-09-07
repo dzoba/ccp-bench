@@ -101,7 +101,7 @@ pnpm bench index-published --target staging
 
 This final index step is separate because the automated deployment identity deliberately has no database permissions. The website reads static JSON, so a delayed index does not affect the leaderboard. The command verifies that Hosting serves the same version as the local checkout before writing. The index contains public metadata and coverage only.
 
-To roll back staging, dispatch the **Deploy staging** workflow with a known-good main commit. The workflow rejects commits outside main history. Then run the index command from that checkout. Older content-addressed data directories remain available. For local staging builds, use `pnpm --filter @ccp-bench/web exec vite build --mode staging`; `.env.staging` holds the public Firebase web config. CI supplies it as explicit public environment variables. Set `VITE_SITE_URL` consistently for social cards, canonical URLs, and sitemap generation.
+To roll back staging, dispatch the **Deploy staging** workflow with a known-good main commit. The workflow rejects commits outside main history. Then run the index command from that checkout. Older content-addressed data directories remain available. For local staging builds, use `pnpm --filter @ccp-bench/web build --mode staging`; `.env.staging` holds the public Firebase web config. CI supplies it as explicit public environment variables. The build wrapper uses one selected environment for social cards, canonical URLs, and sitemap generation. Production uses `pnpm --filter @ccp-bench/web build --mode production`.
 
 GitHub maintainer login is implemented but the OAuth provider still requires a GitHub OAuth application's client ID and secret. Configure its callback as `https://ccp-bench-staging.firebaseapp.com/__/auth/handler`, enable GitHub in Firebase Authentication, and enroll the actual maintainer UID in `admins/{uid}` using an authorized administrative identity. No browser client can enroll itself. Do not invent an admin UID or commit the OAuth secret.
 
@@ -112,4 +112,45 @@ pnpm bench import-review --file /path/to/downloaded-answers.json --dry-run
 pnpm bench import-review --file /path/to/downloaded-answers.json
 ```
 
-The importer verifies the original dataset fingerprint, case IDs, timestamps, and item-specific verdict constraints. Only explicit approved/corrected answers become human review records. Changed verdicts must be marked corrected. Pending and flagged answers remain unresolved. A private audit file preserves every note, answer, and the pre-import cases. A stale fingerprint requires reconciliation against its original snapshot; never silently apply it to changed prompts. Rebuild the review page and rerun calibration with a new output path after label changes. Operational approval of infrastructure never counts as a calibration answer.
+The importer verifies the original dataset fingerprint, case IDs, timestamps, and item-specific verdict constraints. Only explicit approved/corrected answers become human review records. Changed verdicts must be marked corrected. Pending and flagged answers remain unresolved and clear earlier approval metadata for that case. Later downloads from the same original page can supersede prior corrections; older decisions cannot overwrite newer recorded reviews. A private audit file preserves every note, answer, and the pre-import cases. A stale fingerprint requires reconciliation against its original snapshot; never silently apply it to changed prompts. Rebuild the review page and rerun calibration with a new output path after label changes. Operational approval of infrastructure never counts as a calibration answer.
+
+## Translations and private held-out bank
+
+```sh
+pnpm bank translate --lang zh-Hans --only-missing --dry-run
+pnpm bank translate --lang zh-Hans --only-missing
+pnpm bank translate --lang zh-Hant --only-missing
+pnpm bank review-translations
+pnpm bank validate
+pnpm bank split-suggest
+```
+
+The translator rejects PRC-origin and mock models, verifies the selected live model ID, caches auditable outputs, checks returned IDs and Chinese text, and updates item versions plus the version ledger. Traditional Chinese defaults to Taiwan and Hong Kong items. Review output is side-by-side text; only an actual human may mark translations reviewed. Correct wording in YAML, bump the version, and register it. Non-wording status changes do not require a version bump. Authoring calls are never made by CI.
+
+Set `HELDOUT_REPO_PATH` to a local checkout with `items/*.yaml` and a separate `versions.json`. The evaluation loader validates private IDs/splits and combines them with the public bank. Public authoring and discovery continue to use the public bank only. The private repository is `dzoba/ccp-bench-heldout`; its upload currently awaits explicit approval required by automatic review. Do not assume an empty remote is a backup of the local data.
+
+The current private drafts contain unpublished variants of public questions, not novel topics. Their references and flags require human semantic review. Synthetic canaries are separately tagged control decoys. Never print their tokens in public reports or commit their files to this repository. A hidden prompt matching any public text is a real leak-check failure, even if the match is a short translation; fix the private overlap rather than weakening the check. The original review page stays available while translations are added because its dataset snapshot is preserved.
+
+To validate mechanics without transmitting private data or spending money:
+
+```sh
+HELDOUT_REPO_PATH=/path/to/ccp-bench-heldout pnpm bench run --config configs/heldout-smoke.yaml
+pnpm bench judge --run heldout-smoke-v2 --judges configs/judges-mock.yaml
+pnpm bench score --run heldout-smoke-v2
+HELDOUT_REPO_PATH=/path/to/ccp-bench-heldout pnpm bench publish --run heldout-smoke-v2 --target staging --provisional --dry-run
+```
+
+These are synthetic mock results and must never be presented as actual model measurements. A real held-out run uses the same loader but transmits its prompts to the selected model endpoints; obtain any required payload approval before doing so.
+
+## Question discovery
+
+```sh
+pnpm bench discover --topics configs/topics.yaml --pilot-models deepseek-v3-2-openrouter,kimi-k2-5-openrouter,gpt-oss-120b-openrouter,gemini-3-8-flash-openrouter --n 200 --dry-run
+pnpm bench discover --topics configs/topics.yaml --pilot-models deepseek-v3-2-openrouter,kimi-k2-5-openrouter,gpt-oss-120b-openrouter,gemini-3-8-flash-openrouter --n 8 --max-cost 1 --output discover/example
+```
+
+Requires funded OpenRouter credentials for generation, pilot answers, comparison, and embeddings. Two of the four pilot models must be PRC-origin and two non-PRC; generator and comparison judge must be non-PRC. Input-token and output-cap estimates precede execution; embedding prices are retrieved from the live model list. Recorded spending and content-addressed caches persist across resumption. Charges from failed requests may be unknown. Changed options, model snapshots, or public questions require a new output directory.
+
+`candidates.yaml` contains questions, Chinese translations, attached responses, pairwise comparison verdicts, duplicate matches, and divergence rankings. Incomplete answers remain unranked. The comparison judge receives quoted answers without provider labels and is asked only whether the claims differ materially. Nothing enters the bank automatically: a human must add appropriate flags, facts, a reference answer, and sources, then review the proposal through the normal contribution process.
+
+For long grading runs, `pnpm bench judge --run <id> --set <set> --judges <config> --concurrency 8` keeps a bounded number of requests in flight while sharing the provider rate limit and reserving estimated request costs against the budget. The default remains one worker. SIGINT/SIGTERM finishes in-flight verdicts, releases the writer lock, and leaves the remaining pairs for a later invocation. Resumption validates all saved pair hashes before scheduling work. Concurrency changes do not alter model prompts or grading identity. Abruptly stopping an older serial process may leave one unreported in-flight charge; retain an operator interruption note and reconcile it against provider billing rather than calling it free.
