@@ -17,6 +17,10 @@ These are response-generation estimates from the September 7 price snapshot, not
 
 Only `OPENROUTER_API_KEY` is present in the current environment. Direct vendor, Together, and Fireworks credentials are absent, so the required same-weights vendor/other-host comparisons cannot yet be executed. The registry's unpinned OpenRouter routes must not be misrepresented as controlled host comparisons. Verify current endpoint availability and weight/quantization identity before adding comparable host entries.
 
+## Endpoint access check
+
+`roster-access-v1` completed on September 7 using one public, neutral Mid-Autumn Festival question per model. All 19 paid OpenRouter entries returned successfully with no provider errors or API filters; reported spend was $0.139951249. This establishes basic endpoint access with the recorded provisional defaults, not benchmark performance, vendor-recommended parameter compliance, or host identity. Raw records remain local and separate from the scored pilot.
+
 ## Infrastructure status
 
 Staging Hosting, Firestore rules/indexes, public run index, and private artifact Storage are deployed. Staging's automated publisher uses a restricted OIDC identity with no database or raw Storage access; main-branch workflow execution awaits the approved merge of PR #4. Production project `ccp-bench-prod`, web app, and free-tier Firestore database/rules/indexes are prepared. Production billing and its private artifact bucket remain pending explicit approval required by automatic review. Production Hosting has not been deployed.
