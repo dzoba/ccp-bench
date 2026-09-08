@@ -347,7 +347,7 @@ async function judgeRunUnlocked(
     .number()
     .int()
     .min(1)
-    .max(32)
+    .max(64)
     .parse(options.concurrency ?? 1);
   async function worker() {
     while (!failed && !options.signal?.aborted) {

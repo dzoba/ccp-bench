@@ -213,7 +213,7 @@ program
         run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
         judges: z.string(),
         set: z.string(),
-        concurrency: z.coerce.number().int().min(1).max(32),
+        concurrency: z.coerce.number().int().min(1).max(64),
         budgetLimited: z.boolean().default(false),
       })
       .parse(raw);
