@@ -28,12 +28,24 @@ export default function Home() {
         description="Compare model censorship and narrative alignment scores across English and Chinese questions. Explore the evidence behind the provisional results."
       />
       <div className="home-chart-heading">
-        <h1 id="chart-title">Censorship &amp; narrative alignment.</h1>
+        <h1 id="chart-title">
+          Which AI models censor answers or echo Chinese government narratives?
+        </h1>
         <Link className="pilot-tag" to="/results">
           {index.status === 'provisional'
             ? 'Provisional pilot'
             : 'Validated results'}
         </Link>
+      </div>
+      <div className="chart-legend" aria-label="Model developer location">
+        <span>
+          <i className="origin-china" />
+          China
+        </span>
+        <span>
+          <i className="origin-us" />
+          United States
+        </span>
       </div>
       <figure
         className="money-chart"
@@ -56,18 +68,25 @@ export default function Home() {
           {rows.map(({ model, composite }) => {
             const name = model.display
               .replace(/^.*?:\s*/, '')
-              .replace(/\s*\(.*\)/, '');
+              .replace(/\s*\(.*\)/, '')
+              .replace('Qwen3 235B A22B Instruct 2507', 'Qwen3 235B');
             const mean = composite!.mean!;
             const se = composite!.se;
             const low = Math.max(0, mean - (se ?? 0));
             const high = Math.min(100, mean + (se ?? 0));
             return (
               <Link
-                className="score-row"
+                className={`score-row ${model.origin === 'prc' ? 'model-china' : 'model-us'}`}
                 key={model.key}
                 to={`/models/${model.key}`}
               >
-                <span className="score-model">{name}</span>
+                <span className="score-model" title={model.display}>
+                  {name}
+                  <span className="sr-only">
+                    {' '}
+                    ({model.origin === 'prc' ? 'China' : 'United States'})
+                  </span>
+                </span>
                 <span
                   className="score-track"
                   style={

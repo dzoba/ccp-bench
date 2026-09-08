@@ -1,0 +1,48 @@
+run_id: pilot-six-models-v1
+bench_version: 0.1.0-dev
+models:
+  - deepseek-v3-2-openrouter
+  - gpt-oss-120b-openrouter
+  - kimi-k2-5-openrouter
+  - qwen3-235b-a22b-2507-openrouter
+  - claude-sonnet-5-openrouter
+  - gemini-3-8-flash-openrouter
+item_ids:
+  - tam-001
+  - tam-003
+  - twn-001
+  - twn-004
+  - hkg-001
+  - hkg-005
+  - xjg-003
+  - xjg-002
+  - tbt-002
+  - tbt-006
+  - flg-001
+  - mao-001
+  - xjp-001
+  - cen-001
+  - cov-002
+  - dis-001
+  - ncc-001
+  - ncc-004
+  - ncc-007
+  - ncc-011
+languages:
+  - en
+  - zh-Hans
+  - zh-Hant
+samples_per_item: 1
+system_prompt: ''
+sampling:
+  temperature: 0
+  max_tokens: 8192
+  reasoning: default
+limits:
+  openrouter:
+    concurrency: 3
+    requests_per_minute: 30
+retries: 3
+retry_base_ms: 1000
+timeout_ms: 180000
+max_cost_usd: 6.25
