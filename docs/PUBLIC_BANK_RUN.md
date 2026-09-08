@@ -9,8 +9,10 @@ Persistent per-request budgets reserve a conservative UTF-8 input bound plus the
 Commands:
 
 ```sh
-pnpm bench run --config configs/public-six-models.yaml --budget-limited
+pnpm bench run --config configs/public-six-models.yaml --budget-limited --concurrency 32
 pnpm bench judge --run public-six-models-v1 --judges configs/judges-public-six-models.yaml --set initial --concurrency 32 --budget-limited
 ```
 
 Judging may process completed responses while generation continues, then resume to collect the remainder. Publication requires the final complete response manifest, scoring, schema checks, and held-out leak scans. Failures and filtering remain visible in coverage; human calibration is still pending, so publication remains provisional.
+
+Generation concurrency can be overridden operationally without changing the request parameters or frozen run configuration. Each execution records the override and source Git revision in a private execution-events ledger. The first process was drained gracefully before resuming at 32 concurrent requests.

@@ -326,3 +326,39 @@ it('stops a budget-limited workload without recording unstarted calls as provide
   await executeRun(capped, [model], items, prices, options);
   expect(calls).toBe(1);
 });
+
+it('records a concurrency override without changing sampling or the run configuration', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'runner-concurrency-'));
+  directories.push(directory);
+  let active = 0,
+    peak = 0;
+  const parallel: Provider = {
+    ...provider,
+    generate: async () => {
+      active++;
+      peak = Math.max(peak, active);
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      active--;
+      return answer;
+    },
+  };
+  const one = RunConfigSchema.parse({
+    ...config,
+    run_id: 'override',
+    samples_per_item: 1,
+    limits: { mock: { concurrency: 1, requests_per_minute: 600000 } },
+  });
+  const result = await executeRun(one, [model], items, price, {
+    directory,
+    cacheDirectory: join(directory, 'cache'),
+    providerFactory: () => parallel,
+    concurrency: 2,
+    log: () => {},
+  });
+  expect(peak).toBe(2);
+  expect(result.config.limits.mock?.concurrency).toBe(1);
+  expect(result.totals.completed).toBe(2);
+  expect(
+    await readFile(join(directory, 'override/execution-events.jsonl'), 'utf8'),
+  ).toContain('"concurrency_override":2');
+});

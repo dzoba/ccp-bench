@@ -325,6 +325,10 @@ async function inputs(raw: unknown) {
 }
 configOption(program.command('run'))
   .option(
+    '--concurrency <count>',
+    'Operational concurrency override; sampling remains unchanged',
+  )
+  .option(
     '--budget-limited',
     'Permit a partial workload under a persistent per-request spending cap',
   )
@@ -338,6 +342,7 @@ configOption(program.command('run'))
     const options = z
       .object({
         cache: z.boolean().default(true),
+        concurrency: z.coerce.number().int().min(1).max(100).optional(),
         budgetLimited: z.boolean().default(false),
         stopAfter: z.number().optional(),
       })
@@ -353,6 +358,7 @@ configOption(program.command('run'))
     try {
       const manifest = await executeRun(config, models, items, prices, {
         noCache: !options.cache,
+        concurrency: options.concurrency,
         budgetLimited: options.budgetLimited,
         stopAfter: options.stopAfter,
         signal: controller.signal,

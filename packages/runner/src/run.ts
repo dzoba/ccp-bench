@@ -34,6 +34,7 @@ export type RunOptions = {
   cacheDirectory?: string;
   noCache?: boolean;
   budgetLimited?: boolean;
+  concurrency?: number;
   stopAfter?: number;
   signal?: AbortSignal;
   providerFactory?: (model: Model, timeout?: number) => Provider;
@@ -221,6 +222,21 @@ export async function executeRun(
             config.max_cost_usd,
             manifest.totals.cost_usd,
           );
+    let executionSha = 'unknown';
+    try {
+      executionSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).trim();
+    } catch {
+      /* Source archives may omit Git. */
+    }
+    await appendJsonl(join(directory, 'execution-events.jsonl'), {
+      started_at: new Date().toISOString(),
+      git_sha: executionSha,
+      budget_limited: options.budgetLimited ?? false,
+      concurrency_override: options.concurrency ?? null,
+    });
     let budgetStopped = false;
     manifest.status = 'running';
     await atomicJson(join(directory, 'manifest.json'), manifest);
@@ -243,9 +259,12 @@ export async function executeRun(
     const startTime = Date.now();
     await settleWorkers(
       [...groups.values()].map(async ({ provider, tasks: groupTasks }) => {
-        const limit = ProviderLimitSchema.parse(
-          config.limits[provider.id] ?? {},
-        );
+        const limit = ProviderLimitSchema.parse({
+          ...config.limits[provider.id],
+          ...(options.concurrency === undefined
+            ? {}
+            : { concurrency: options.concurrency }),
+        });
         const bucket = new TokenBucket(
           limit.requests_per_minute,
           limit.concurrency,
