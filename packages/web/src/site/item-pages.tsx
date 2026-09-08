@@ -4,14 +4,22 @@ import { PublicItemSchema, type PublicItem } from '@ccp-bench/schema';
 import { useDataset, fetchData, human, langName } from './data';
 import { Head, PageIntro } from './layout';
 const Dispute = lazy(() => import('./disputes'));
+const verdictName = (label: string) =>
+  label === 'parroting' ? 'Narrative endorsement' : human(label);
 export function ItemExplorer() {
   const { index } = useDataset();
   const [query, setQuery] = useState(''),
     [category, setCategory] = useState('all'),
     [type, setType] = useState('all'),
-    [contested, setContested] = useState('all');
+    [contested, setContested] = useState('all'),
+    [coverage, setCoverage] = useState('results');
+  const hasResults = (item: (typeof index.items)[number]) =>
+    Object.values(item.labels).some((labels) => labels.length > 0);
+  const evaluatedCount = index.items.filter(hasResults).length;
   const items = index.items.filter(
     (i) =>
+      (coverage === 'all' ||
+        (coverage === 'results' ? hasResults(i) : !hasResults(i))) &&
       (category === 'all' || i.category === category) &&
       (type === 'all' || i.type === type) &&
       (contested === 'all' || String(i.contested) === contested) &&
@@ -25,11 +33,24 @@ export function ItemExplorer() {
       />
       <PageIntro title="Inspect the questions.">
         <p>
-          Browse {index.items.length} public items. Held-out questions and
-          answers are never exposed here.
+          {evaluatedCount} of {index.items.length} questions have published
+          results.
         </p>
       </PageIntro>
       <div className="filters">
+        <label>
+          Coverage
+          <select
+            value={coverage}
+            onChange={(e) => setCoverage(e.target.value)}
+          >
+            <option value="results">With results ({evaluatedCount})</option>
+            <option value="all">All questions ({index.items.length})</option>
+            <option value="pending">
+              Without results ({index.items.length - evaluatedCount})
+            </option>
+          </select>
+        </label>
         <label className="search-label">
           Search
           <input
@@ -91,27 +112,32 @@ export function ItemExplorer() {
               <Link to={`/items/${i.id}`}>{i.prompt}</Link>
             </h2>
             <div className="label-row">
-              {index.models.map((m) => (
-                <span key={m.key}>
-                  <strong>{m.display.replace(/\s*\(.*\)/, '')}</strong>{' '}
-                  {i.labels[m.key]?.length ? (
-                    i.labels[m.key]!.map((l) => (
-                      <span className={`label-chip ${l}`} key={l}>
-                        {l}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="muted">Not evaluated</span>
-                  )}
-                </span>
-              ))}
+              {hasResults(i) ? (
+                index.models.map((m) => (
+                  <span key={m.key}>
+                    <strong>{m.display.replace(/\s*\(.*\)/, '')}</strong>{' '}
+                    {i.labels[m.key]?.length ? (
+                      i.labels[m.key]!.map((l) => (
+                        <span className={`label-chip ${l}`} key={l}>
+                          {verdictName(l)}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="muted">No scored answer</span>
+                    )}
+                  </span>
+                ))
+              ) : (
+                <span className="muted">No results in this run</span>
+              )}
             </div>
           </article>
         ))}
       </div>
       {!items.length && (
         <div className="empty">
-          No questions match these filters. Try another search or category.
+          No questions match these filters. Try another search or category, or
+          select All questions to include questions without results.
         </div>
       )}
     </>
@@ -301,7 +327,10 @@ export function ItemPage() {
                       {a.judgments.map((j) => (
                         <details key={j.judge_key}>
                           <summary>
-                            {j.verdict?.label ?? 'Judge error'} · {j.judge_key}
+                            {j.verdict
+                              ? verdictName(j.verdict.label)
+                              : 'Judge error'}{' '}
+                            · {j.judge_key}
                           </summary>
                           {j.judge_error ? (
                             <p>{j.judge_error}</p>
@@ -331,7 +360,7 @@ export function ItemPage() {
                       {a.human && (
                         <details>
                           <summary>
-                            Human review: {a.human.verdict.label}
+                            Human review: {verdictName(a.human.verdict.label)}
                           </summary>
                           <p>{a.human.verdict.rationale}</p>
                         </details>

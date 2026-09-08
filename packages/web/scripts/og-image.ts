@@ -8,13 +8,13 @@ const directory =
   process.env.CCP_SITE_ASSETS_OUT ||
   fileURLToPath(new URL('../public/', import.meta.url));
 await mkdir(directory, { recursive: true });
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#f6f8f7"/><rect x="68" y="70" width="10" height="480" fill="#216d62"/><text x="115" y="132" font-family="Arial" font-size="34" fill="#216d62">CCP Bench</text><text x="110" y="280" font-family="Georgia" font-size="69" fill="#23302f">How models answer</text><text x="110" y="365" font-family="Georgia" font-size="69" fill="#23302f">sensitive questions.</text><text x="115" y="475" font-family="Arial" font-size="27" fill="#596965">Refusal. Omission. Narrative alignment.</text><text x="115" y="525" font-family="Arial" font-size="23" fill="#596965">Open methods and inspectable evidence.</text></svg>`;
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#ffffff"/><text x="80" y="100" font-family="Arial" font-size="30" fill="#254de8">CCP Bench</text><text x="80" y="240" font-family="Arial" font-size="68" fill="#182039">AI answers.</text><text x="80" y="320" font-family="Arial" font-size="61" fill="#182039">CCP narrative alignment.</text><text x="80" y="455" font-family="Arial" font-size="26" fill="#626c80">Compare the models. Inspect the evidence.</text><path d="M82 525h480m-480 25h340m-340 25h120" stroke="#254de8" stroke-width="12"/></svg>`;
 await writeFile(directory + 'og.png', new Resvg(svg).render().asPng());
 for (const [name, size] of [
   ['favicon.png', 32],
   ['apple-touch-icon.png', 180],
 ] as const) {
-  const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100"><rect width="100" height="100" rx="16" fill="#216d62"/><path d="M22 75V48h13v27zm22 0V25h13v50zm22 0V38h13v37z" fill="#fff"/></svg>`;
+  const icon = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100"><rect width="100" height="100" rx="16" fill="#254de8"/><path d="M22 75V48h13v27zm22 0V25h13v50zm22 0V38h13v37z" fill="#fff"/></svg>`;
   await writeFile(directory + name, new Resvg(icon).render().asPng());
 }
 const pointer = z
@@ -27,6 +27,7 @@ const index = PublicIndexSchema.parse(
 );
 const routes = [
   '/',
+  '/results',
   '/items',
   '/compare',
   '/languages',

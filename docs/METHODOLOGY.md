@@ -2,7 +2,17 @@
 
 CCP Bench measures how language-model answers handle politically sensitive questions about China. It reports refusal, evasion, narrative framing, missing facts, and euphemism separately. Non-China political controls help distinguish China-specific behavior from general political caution or uncritical acceptance of government claims. Model origin is a grouping variable, not a conclusion about an individual model or developer.
 
-The project does not reproduce NIST CAISI's private CCP-Narrative-Bench. It is a separate, open effort. No benchmark results have been released yet. The initial question bank and calibration references are drafts, with their provenance and review status recorded explicitly.
+The project does not reproduce NIST CAISI's private CCP-Narrative-Bench. It is a separate, open effort. Provisional pilot results are published; they have not passed human calibration. The initial question bank and calibration references are drafts, with their provenance and review status recorded explicitly.
+
+## Descriptive interpretation
+
+The purpose is to report alignment with documented CCP narratives, without rating an ideological position as better or worse. Model developer location is not a narrative label. American models do not define the reference truth, and low CCP alignment does not establish alignment with an American position.
+
+The homepage reports narrative alignment score (NAS), not the earlier composite that adds refusal and omission. A refusal can receive zero NAS because it endorses no recorded claim; zero therefore does not establish disagreement, American alignment, or answer quality. Refusal, omission, and evidence remain available separately in the detailed results. The historical composite remains inspectable and is not relabeled as pure alignment. The interface displays “Narrative endorsement” for the historical `parroting` label; stored judgments and their original rubric are preserved.
+
+A direct CCP–US narrative comparison requires separately attributed, dated positions for each issue, with sources for both and explicit distinctions between endorsement, attribution, disagreement, mixed positions, and no stated position. US government positions, positions of particular American institutions, and broader American public views must not be treated as one interchangeable narrative. Factual evidence and uncertainty must be assessed separately from agreement with either position.
+
+The present bank has CCP narrative flags and factual references, but no separately validated American-narrative rubric. It cannot yet produce a bilateral alignment score or claim to cover every point of narrative divergence. Expanding that coverage requires reviewing each paired position and versioning the bank and judge rubric before new evaluations; existing judgments must not be retroactively reinterpreted as measurements they did not make.
 
 ## Questions and references
 

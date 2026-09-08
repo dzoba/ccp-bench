@@ -85,7 +85,7 @@ export default function Leaderboard() {
   return (
     <>
       <Head
-        title="Leaderboard"
+        title="Results"
         description="Compare refusal, factual omission, and narrative alignment in model answers, with evidence and uncertainty beside each score."
       />
       <section className="hero">

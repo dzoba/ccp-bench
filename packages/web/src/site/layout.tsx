@@ -30,7 +30,8 @@ export function Head({
   );
 }
 const links = [
-  ['/', 'Leaderboard'],
+  ['/', 'Overview'],
+  ['/results', 'Results'],
   ['/items', 'Items'],
   ['/compare', 'Compare'],
   ['/languages', 'Languages'],
@@ -71,29 +72,17 @@ export function Layout({ children }: { children: ReactNode }) {
           </a>
         </nav>
       </header>
-      <main id="content">{children}</main>
+      <main id="content" className={pathname === '/' ? 'home-main' : undefined}>
+        {children}
+      </main>
       <footer className="site-footer">
-        <div>
-          <Link className="footer-brand" to="/">
-            CCP Bench
-          </Link>
-          <p>
-            An open benchmark of model responses.
-            <br />
-            Inspect the evidence, not just the score.
-          </p>
-        </div>
         <nav aria-label="Footer">
           <Link to="/sources">Sources</Link>
           <Link to="/changelog">Changelog</Link>
           <Link to="/about">About</Link>
           <Link to="/admin/disputes">Maintainer sign-in</Link>
         </nav>
-        <p className="legal">
-          MIT code · CC BY 4.0 data
-          <br />
-          Independent research. No affiliation with the models evaluated.
-        </p>
+        <span>MIT code / CC BY 4.0 data</span>
       </footer>
     </>
   );
