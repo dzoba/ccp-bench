@@ -1280,3 +1280,9 @@ section + section {
     width: 78%;
   }
 }
+
+.alignment-note {
+  margin: 10px 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+}

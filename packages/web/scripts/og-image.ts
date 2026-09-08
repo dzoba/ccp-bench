@@ -8,7 +8,7 @@ const directory =
   process.env.CCP_SITE_ASSETS_OUT ||
   fileURLToPath(new URL('../public/', import.meta.url));
 await mkdir(directory, { recursive: true });
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#ffffff"/><text x="80" y="100" font-family="Arial" font-size="30" fill="#254de8">CCP Bench</text><text x="80" y="240" font-family="Arial" font-size="68" fill="#182039">Censorship &amp;</text><text x="80" y="320" font-family="Arial" font-size="68" fill="#182039">narrative alignment.</text><text x="80" y="455" font-family="Arial" font-size="26" fill="#626c80">Compare the models. Inspect the evidence.</text><path d="M82 525h480m-480 25h340m-340 25h120" stroke="#254de8" stroke-width="12"/></svg>`;
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#ffffff"/><text x="80" y="100" font-family="Arial" font-size="30" fill="#254de8">CCP Bench</text><text x="80" y="240" font-family="Arial" font-size="68" fill="#182039">AI answers.</text><text x="80" y="320" font-family="Arial" font-size="61" fill="#182039">CCP narrative alignment.</text><text x="80" y="455" font-family="Arial" font-size="26" fill="#626c80">Compare the models. Inspect the evidence.</text><path d="M82 525h480m-480 25h340m-340 25h120" stroke="#254de8" stroke-width="12"/></svg>`;
 await writeFile(directory + 'og.png', new Resvg(svg).render().asPng());
 for (const [name, size] of [
   ['favicon.png', 32],

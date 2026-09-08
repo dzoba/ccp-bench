@@ -6,8 +6,19 @@ import { Head } from './layout';
 export default function Home() {
   const { index, models } = useDataset();
   const rows = models
-    .filter((model) => model.composite?.mean != null)
-    .sort((a, b) => b.composite!.mean! - a.composite!.mean!);
+    .map((entry) => ({
+      model: entry.model,
+      alignment: entry.groups.find(
+        (group) =>
+          group.scope === 'china_sensitive' &&
+          group.category === 'all' &&
+          group.type === 'all' &&
+          group.language === 'all' &&
+          group.split === 'all',
+      )?.metrics.nas,
+    }))
+    .filter((row) => row.alignment?.mean != null)
+    .sort((a, b) => b.alignment!.mean! - a.alignment!.mean!);
   const ceiling = Math.min(
     100,
     Math.max(
@@ -15,7 +26,7 @@ export default function Home() {
       Math.ceil(
         Math.max(
           ...rows.map(
-            ({ composite }) => composite!.mean! + (composite!.se ?? 0),
+            ({ alignment }) => alignment!.mean! + (alignment!.se ?? 0),
           ),
         ) / 25,
       ) * 25,
@@ -24,12 +35,12 @@ export default function Home() {
   return (
     <section className="home-chart" aria-labelledby="chart-title">
       <Head
-        title="Censorship & narrative alignment"
-        description="Compare model censorship and narrative alignment scores across English and Chinese questions. Explore the evidence behind the provisional results."
+        title="CCP narrative alignment"
+        description="Measure how AI answers align with CCP narratives across English and Chinese questions, with sources and uncertainty."
       />
       <div className="home-chart-heading">
         <h1 id="chart-title">
-          Which AI models censor answers or echo Chinese government narratives?
+          Measuring how AI answers align with CCP narratives.
         </h1>
         <Link className="pilot-tag" to="/results">
           {index.status === 'provisional'
@@ -65,13 +76,13 @@ export default function Home() {
             gridTemplateColumns: `repeat(${Math.max(1, rows.length)}, minmax(0, 1fr))`,
           }}
         >
-          {rows.map(({ model, composite }) => {
+          {rows.map(({ model, alignment }) => {
             const name = model.display
               .replace(/^.*?:\s*/, '')
               .replace(/\s*\(.*\)/, '')
               .replace('Qwen3 235B A22B Instruct 2507', 'Qwen3 235B');
-            const mean = composite!.mean!;
-            const se = composite!.se;
+            const mean = alignment!.mean!;
+            const se = alignment!.se;
             const low = Math.max(0, mean - (se ?? 0));
             const high = Math.min(100, mean + (se ?? 0));
             return (
@@ -105,7 +116,7 @@ export default function Home() {
                     {' '}
                     out of 100; standard error{' '}
                     {se == null ? 'unavailable' : se.toFixed(1)}; n=
-                    {composite!.n}. View evidence.
+                    {alignment!.n}. View evidence.
                   </span>
                 </span>
               </Link>
@@ -114,20 +125,25 @@ export default function Home() {
         </div>
         {rows.length === 0 && (
           <p className="empty">
-            Composite scores are not available yet.{' '}
+            Narrative alignment scores are not available yet.{' '}
             <Link to="/results">See measured results</Link>.
           </p>
         )}
         <figcaption id="chart-note">
           <span>
-            Composite score / 100 <span className="chart-note-divider">·</span>{' '}
-            Lower is better
+            CCP narrative alignment / 100{' '}
+            <span className="chart-note-divider">·</span> Higher = more
+            alignment
           </span>
           <span>
             English + Chinese <span className="chart-note-divider">·</span>{' '}
             Whiskers ±1 SE
           </span>
         </figcaption>
+        <p className="alignment-note">
+          Low alignment does not imply US alignment.{' '}
+          <Link to="/methodology">How to read this</Link>
+        </p>
       </figure>
     </section>
   );
