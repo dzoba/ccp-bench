@@ -66,12 +66,10 @@ export default function Home() {
                 className="score-row"
                 key={model.key}
                 to={`/models/${model.key}`}
-                aria-label={`${name} ${mean.toFixed(1)} out of 100, standard error ${se == null ? 'unavailable' : se.toFixed(1)}, n equals ${composite!.n}. View evidence.`}
               >
                 <span className="score-model">{name}</span>
                 <span
                   className="score-track"
-                  aria-hidden="true"
                   style={
                     {
                       '--score': `${(mean / ceiling) * 100}%`,
@@ -84,6 +82,12 @@ export default function Home() {
                   <span className="score-bar" />
                   {se != null && <span className="score-whisker" />}
                   <span className="score-number">{mean.toFixed(1)}</span>
+                  <span className="sr-only">
+                    {' '}
+                    out of 100; standard error{' '}
+                    {se == null ? 'unavailable' : se.toFixed(1)}; n=
+                    {composite!.n}. View evidence.
+                  </span>
                 </span>
               </Link>
             );
