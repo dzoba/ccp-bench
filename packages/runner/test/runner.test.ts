@@ -289,3 +289,76 @@ describe('cache and retry policy', () => {
     ).rejects.toThrow('Current models:\ntest-model');
   });
 });
+
+it('stops a budget-limited workload without recording unstarted calls as provider errors', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'runner-budget-'));
+  directories.push(directory);
+  let calls = 0;
+  const paidProvider: Provider = {
+    ...provider,
+    generate: async () => {
+      calls++;
+      return { ...answer, provider_cost: 0.001 };
+    },
+  };
+  const capped = RunConfigSchema.parse({
+    ...config,
+    run_id: 'capped',
+    samples_per_item: 1,
+    sampling: { max_tokens: 1000 },
+    max_cost_usd: 0.0015,
+  });
+  const prices = {
+    test: { ...price.test, input_per_million: 0, output_per_million: 1 },
+  };
+  const options = {
+    directory,
+    cacheDirectory: join(directory, 'cache'),
+    budgetLimited: true,
+    providerFactory: () => paidProvider,
+    log: () => {},
+  };
+  const partial = await executeRun(capped, [model], items, prices, options);
+  expect(partial.status).toBe('interrupted');
+  expect(partial.totals.completed).toBe(1);
+  expect(partial.totals.failed).toBe(0);
+  expect(calls).toBe(1);
+  await executeRun(capped, [model], items, prices, options);
+  expect(calls).toBe(1);
+});
+
+it('records a concurrency override without changing sampling or the run configuration', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'runner-concurrency-'));
+  directories.push(directory);
+  let active = 0,
+    peak = 0;
+  const parallel: Provider = {
+    ...provider,
+    generate: async () => {
+      active++;
+      peak = Math.max(peak, active);
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      active--;
+      return answer;
+    },
+  };
+  const one = RunConfigSchema.parse({
+    ...config,
+    run_id: 'override',
+    samples_per_item: 1,
+    limits: { mock: { concurrency: 1, requests_per_minute: 600000 } },
+  });
+  const result = await executeRun(one, [model], items, price, {
+    directory,
+    cacheDirectory: join(directory, 'cache'),
+    providerFactory: () => parallel,
+    concurrency: 2,
+    log: () => {},
+  });
+  expect(peak).toBe(2);
+  expect(result.config.limits.mock?.concurrency).toBe(1);
+  expect(result.totals.completed).toBe(2);
+  expect(
+    await readFile(join(directory, 'override/execution-events.jsonl'), 'utf8'),
+  ).toContain('"concurrency_override":2');
+});

@@ -13,6 +13,16 @@ export function ItemExplorer() {
     [type, setType] = useState('all'),
     [contested, setContested] = useState('all'),
     [coverage, setCoverage] = useState('results');
+  const [page, setPage] = useState({ key: '', limit: 30 });
+  const filterKey = JSON.stringify([
+    query,
+    category,
+    type,
+    contested,
+    coverage,
+    index.version,
+  ]);
+  const visibleLimit = page.key === filterKey ? page.limit : 30;
   const hasResults = (item: (typeof index.items)[number]) =>
     Object.values(item.labels).some((labels) => labels.length > 0);
   const evaluatedCount = index.items.filter(hasResults).length;
@@ -97,9 +107,12 @@ export function ItemExplorer() {
           </select>
         </label>
       </div>
-      <p className="caption">{items.length} matching items</p>
+      <p className="caption" aria-live="polite">
+        Showing {Math.min(visibleLimit, items.length)} of {items.length}{' '}
+        matching questions
+      </p>
       <div className="item-list">
-        {items.map((i) => (
+        {items.slice(0, visibleLimit).map((i) => (
           <article key={i.id}>
             <div className="item-meta">
               {human(i.category)}{' '}
@@ -134,6 +147,13 @@ export function ItemExplorer() {
           </article>
         ))}
       </div>
+      {items.length > visibleLimit && (
+        <button
+          onClick={() => setPage({ key: filterKey, limit: visibleLimit + 30 })}
+        >
+          Show {Math.min(30, items.length - visibleLimit)} more questions
+        </button>
+      )}
       {!items.length && (
         <div className="empty">
           No questions match these filters. Try another search or category, or

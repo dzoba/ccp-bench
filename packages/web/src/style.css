@@ -1286,3 +1286,6 @@ section + section {
   font-size: 0.72rem;
   color: var(--muted);
 }
+.alignment-note a {
+  text-decoration: underline;
+}

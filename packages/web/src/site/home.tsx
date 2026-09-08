@@ -44,7 +44,7 @@ export default function Home() {
         </h1>
         <Link className="pilot-tag" to="/results">
           {index.status === 'provisional'
-            ? 'Provisional pilot'
+            ? 'Provisional results'
             : 'Validated results'}
         </Link>
       </div>

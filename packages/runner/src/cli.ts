@@ -201,6 +201,10 @@ program
   .command('judge')
   .requiredOption('--run <id>', 'Existing run ID')
   .option('--concurrency <count>', 'Concurrent judge requests', '1')
+  .option(
+    '--budget-limited',
+    'Permit a partial workload under a persistent per-request spending cap',
+  )
   .option('--set <id>', 'Separate grading revision', 'default')
   .option('--judges <path>', 'Judge configuration', 'configs/judges.yaml')
   .action(async (raw: unknown) => {
@@ -209,7 +213,8 @@ program
         run: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/),
         judges: z.string(),
         set: z.string(),
-        concurrency: z.coerce.number().int().min(1).max(16),
+        concurrency: z.coerce.number().int().min(1).max(64),
+        budgetLimited: z.boolean().default(false),
       })
       .parse(raw);
     const registry = await readYaml(
@@ -237,6 +242,7 @@ program
         {
           judgeSet: options.set,
           concurrency: options.concurrency,
+          budgetLimited: options.budgetLimited,
           signal: controller.signal,
         },
       );
@@ -318,6 +324,14 @@ async function inputs(raw: unknown) {
   return { config, models, items, prices };
 }
 configOption(program.command('run'))
+  .option(
+    '--concurrency <count>',
+    'Operational concurrency override; sampling remains unchanged',
+  )
+  .option(
+    '--budget-limited',
+    'Permit a partial workload under a persistent per-request spending cap',
+  )
   .option('--no-cache', 'Bypass response cache reads and writes')
   .option(
     '--stop-after <count>',
@@ -328,6 +342,8 @@ configOption(program.command('run'))
     const options = z
       .object({
         cache: z.boolean().default(true),
+        concurrency: z.coerce.number().int().min(1).max(100).optional(),
+        budgetLimited: z.boolean().default(false),
         stopAfter: z.number().optional(),
       })
       .parse(raw);
@@ -342,6 +358,8 @@ configOption(program.command('run'))
     try {
       const manifest = await executeRun(config, models, items, prices, {
         noCache: !options.cache,
+        concurrency: options.concurrency,
+        budgetLimited: options.budgetLimited,
         stopAfter: options.stopAfter,
         signal: controller.signal,
       });

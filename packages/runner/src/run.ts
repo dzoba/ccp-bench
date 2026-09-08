@@ -21,6 +21,7 @@ import { createProvider, verifyModels } from './providers';
 import { ProviderError, isTruncated, type Provider } from './providers/types';
 import { TokenBucket, withRetries } from './scheduler';
 import { estimateRun, responseCost, samplingFor } from './estimate';
+import { BudgetExceeded, SpendBudget } from './budget';
 
 async function settleWorkers(tasks: Promise<unknown>[]): Promise<void> {
   const results = await Promise.allSettled(tasks);
@@ -32,6 +33,8 @@ export type RunOptions = {
   directory?: string;
   cacheDirectory?: string;
   noCache?: boolean;
+  budgetLimited?: boolean;
+  concurrency?: number;
   stopAfter?: number;
   signal?: AbortSignal;
   providerFactory?: (model: Model, timeout?: number) => Provider;
@@ -53,12 +56,15 @@ export async function executeRun(
   const factory = options.providerFactory ?? createProvider;
   const estimate = estimateRun(config, models, items, prices);
   if (
+    !options.budgetLimited &&
     config.max_cost_usd !== undefined &&
     estimate.token_cap_estimate_usd > config.max_cost_usd
   )
     throw new Error(
       `Estimated token-cap cost $${estimate.token_cap_estimate_usd.toFixed(4)} exceeds configured budget $${config.max_cost_usd}`,
     );
+  if (options.budgetLimited && config.max_cost_usd === undefined)
+    throw new Error('Budget-limited runs require max_cost_usd');
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const lockPath = join(directory, 'writer.lock');
   let lock;
@@ -208,6 +214,30 @@ export async function executeRun(
       );
       return manifest;
     }
+    const budget =
+      config.max_cost_usd === undefined
+        ? undefined
+        : await SpendBudget.open(
+            join(directory, 'spend-budget.json'),
+            config.max_cost_usd,
+            manifest.totals.cost_usd,
+          );
+    let executionSha = 'unknown';
+    try {
+      executionSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).trim();
+    } catch {
+      /* Source archives may omit Git. */
+    }
+    await appendJsonl(join(directory, 'execution-events.jsonl'), {
+      started_at: new Date().toISOString(),
+      git_sha: executionSha,
+      budget_limited: options.budgetLimited ?? false,
+      concurrency_override: options.concurrency ?? null,
+    });
+    let budgetStopped = false;
     manifest.status = 'running';
     await atomicJson(join(directory, 'manifest.json'), manifest);
     const groups = new Map<
@@ -229,9 +259,12 @@ export async function executeRun(
     const startTime = Date.now();
     await settleWorkers(
       [...groups.values()].map(async ({ provider, tasks: groupTasks }) => {
-        const limit = ProviderLimitSchema.parse(
-          config.limits[provider.id] ?? {},
-        );
+        const limit = ProviderLimitSchema.parse({
+          ...config.limits[provider.id],
+          ...(options.concurrency === undefined
+            ? {}
+            : { concurrency: options.concurrency }),
+        });
         const bucket = new TokenBucket(
           limit.requests_per_minute,
           limit.concurrency,
@@ -241,6 +274,7 @@ export async function executeRun(
           Array.from({ length: limit.concurrency }, async () => {
             while (
               cursor < groupTasks.length &&
+              !budgetStopped &&
               !options.signal?.aborted &&
               (options.stopAfter === undefined || scheduled < options.stopAfter)
             ) {
@@ -282,7 +316,12 @@ export async function executeRun(
               } else {
                 try {
                   const result = await withRetries(
-                    () => provider.generate(req),
+                    () =>
+                      budget
+                        ? budget.generate(req, prices[task.model.key]!, () =>
+                            provider.generate(req),
+                          )
+                        : provider.generate(req),
                     {
                       retries: config.retries,
                       baseMs: config.retry_base_ms,
@@ -299,6 +338,10 @@ export async function executeRun(
                     prices,
                   );
                 } catch (error) {
+                  if (error instanceof BudgetExceeded) {
+                    budgetStopped = true;
+                    break;
+                  }
                   const filtered =
                     error instanceof ProviderError && error.filtered;
                   response = {

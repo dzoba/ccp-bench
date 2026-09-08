@@ -10,6 +10,7 @@ import {
   type JudgeRecord,
   type Model,
   type Prices,
+  type GenerateRequest,
 } from '@ccp-bench/schema';
 import { appendJsonl, atomicJson, hash, readJson, readJsonl } from '../io';
 import { createProvider, verifyModels } from '../providers';
@@ -21,6 +22,7 @@ import { judgeTokenLimit } from './settings';
 import { judgeDirectory } from './paths';
 import { agreementTables } from './agreement';
 import { withWriterLock } from './lock';
+import { BudgetExceeded, SpendBudget } from '../budget';
 
 export function selectJudges(
   target: Model,
@@ -68,6 +70,7 @@ async function judgeRunUnlocked(
     log?: (line: string) => void;
     judgeSet?: string;
     concurrency?: number;
+    budgetLimited?: boolean;
     signal?: AbortSignal;
   } = {},
 ): Promise<JudgeRecord[]> {
@@ -124,7 +127,7 @@ async function judgeRunUnlocked(
         }),
       )) /
     1e6;
-  if (tokenCapEstimate > config.max_cost_usd)
+  if (!options.budgetLimited && tokenCapEstimate > config.max_cost_usd)
     throw new Error(
       `Judge output cap estimate $${tokenCapEstimate.toFixed(2)} exceeds configured budget`,
     );
@@ -132,6 +135,11 @@ async function judgeRunUnlocked(
   const buckets = new Map<string, TokenBucket>();
   let spent = existing.reduce((sum, record) => sum + record.cost_usd, 0);
   const previousSpend = spent;
+  const budget = await SpendBudget.open(
+    join(output, 'spend-budget.json'),
+    config.max_cost_usd,
+    spent,
+  );
   let reserved = 0;
   const tasks: (() => Promise<void>)[] = [];
   for (const sample of responses) {
@@ -235,7 +243,7 @@ async function judgeRunUnlocked(
           await bucket.take();
           let errorMessage: string | undefined;
           try {
-            const generated = await provider.generate({
+            const request: GenerateRequest = {
               model: model.endpoint.model,
               messages: [
                 { role: 'system', content: system },
@@ -253,7 +261,10 @@ async function judgeRunUnlocked(
                 lang: sample.lang,
                 sample_idx: sample.sample_idx,
               },
-            });
+            };
+            const generated = await budget.generate(request, price, () =>
+              provider.generate(request),
+            );
             const billed = responseCost(generated, model, prices);
             spent += billed;
             cost += billed;
@@ -284,6 +295,7 @@ async function judgeRunUnlocked(
             });
             break;
           } catch (error) {
+            if (error instanceof BudgetExceeded) throw error;
             errorMessage =
               error instanceof Error
                 ? error.message.slice(0, 300)
@@ -335,7 +347,7 @@ async function judgeRunUnlocked(
     .number()
     .int()
     .min(1)
-    .max(16)
+    .max(64)
     .parse(options.concurrency ?? 1);
   async function worker() {
     while (!failed && !options.signal?.aborted) {
