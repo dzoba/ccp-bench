@@ -4,7 +4,8 @@ import { HelmetProvider } from 'react-helmet-async';
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { DatasetProvider } from './site/data';
 import { Layout } from './site/layout';
-import Leaderboard from './site/leaderboard';
+import Home from './site/home';
+const Leaderboard = lazy(() => import('./site/leaderboard'));
 import './style.css';
 const ItemExplorer = lazy(() =>
   import('./site/item-pages').then((m) => ({ default: m.ItemExplorer })),
@@ -52,7 +53,8 @@ function App() {
           }
         >
           <Routes>
-            <Route path="/" element={<Leaderboard />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/results" element={<Leaderboard />} />
             <Route path="/items" element={<ItemExplorer />} />
             <Route path="/items/:id" element={<ItemPage />} />
             <Route path="/models/:key" element={<ModelPage />} />
